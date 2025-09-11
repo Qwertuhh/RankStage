@@ -1,50 +1,51 @@
-import { connectToDatabase } from "@/lib/mongodb";
-import User from "@/models/User";
-import bcrypt from "bcryptjs";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { hash } from "bcrypt";
+import connectDB from "@/lib/db";
+import { User } from "@/models/user.model";
+import { UserRole } from "@/types/enums";
 
-export async function POST(request: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const { name, email, password, role = "user" } = await request.json();
+    const { email, password, name } = await req.json();
 
-    if (!name || !email || !password) {
+    if (!email || !password || !name) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    await connectToDatabase();
+    await connectDB();
 
-    // Check if user already exists
     const existingUser = await User.findOne({ email });
+
     if (existingUser) {
       return NextResponse.json(
-        { error: "User already exists" },
+        { error: "Email already exists" },
         { status: 400 }
       );
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 12);
+    const hashedPassword = await hash(password, 12);
 
-    // Create new user
     const user = await User.create({
-      name,
       email,
+      name,
       password: hashedPassword,
-      role,
+      role: UserRole.USER,
     });
 
     return NextResponse.json({
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
+      id: user._id.toString(),
+      email: user.email,
+      name: user.name,
+      role: user.role,
     });
   } catch (error) {
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    console.error("Registration error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

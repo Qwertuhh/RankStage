@@ -1,66 +1,85 @@
-import { AuthOptions } from "next-auth";
+import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { connectToDatabase } from "@/lib/mongodb";
-import User from "@/models/User";
-import bcrypt from "bcryptjs";
-import { IUser } from "@/types/models";
+import { compare } from "bcrypt";
+import connectDB from "@/lib/db";
+import { User } from "@/models/user.model";
+import Logger from "@/lib/logger";
 
-export const authOptions: AuthOptions = {
+export const authOptions: NextAuthOptions = {
+  secret: process.env.NEXTAUTH_SECRET,
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  pages: {
+    signIn: "/auth/signin",
+    error: "/auth/error",
+  },
+  debug: process.env.NODE_ENV === "development",
   providers: [
     CredentialsProvider({
-      name: "Credentials",
+      name: "credentials",
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
+        try {
+          if (!credentials?.email || !credentials?.password) {
+            Logger.error("Missing credentials");
+            return null;
+          }
+
+          await connectDB();
+
+          const user = await User.findOne({ 
+            email: credentials.email.toLowerCase() 
+          }).select("+password");
+
+          if (!user) {
+            Logger.error("User not found", undefined, { email: credentials.email });
+            return null;
+          }
+
+          const isPasswordValid = await compare(credentials.password, user.password);
+
+          if (!isPasswordValid) {
+            Logger.error("Invalid password", undefined, { email: credentials.email });
+            return null;
+          }
+
+          return {
+            id: user._id.toString(),
+            email: user.email,
+            name: user.name,
+            role: user.role,
+          };
+        } catch (error) {
+          Logger.error(
+            "Authentication error",
+            error instanceof Error ? error : new Error("Unknown error")
+          );
           return null;
         }
-
-        await connectToDatabase();
-
-        const user = await User.findOne({ email: credentials.email });
-        if (!user) {
-          return null;
-        }
-
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password,
-          user.password
-        );
-        if (!isPasswordValid) {
-          return null;
-        }
-
-        return {
-          id: user._id.toString(),
-          email: user.email,
-          name: user.name,
-          role: user.role,
-        };
       },
     }),
   ],
-  session: {
-    strategy: "jwt",
-  },
   callbacks: {
+    async redirect() {
+      return "/domains";
+    },
+    async session({ session, token }) {
+      if (token && session.user) {
+        session.user.id = token.sub ?? "";
+        session.user.role = token.role ?? "USER";
+      }
+      return session;
+    },
     async jwt({ token, user }) {
       if (user) {
         token.role = user.role;
       }
       return token;
     },
-    async session({ session, token }) {
-      if (session.user) {
-        (session.user as IUser).role = token.role as "user" | "admin";
-      }
-      return session;
-    },
   },
-  pages: {
-    signIn: "/auth/signin",
-  },
-  secret: process.env.NEXTAUTH_SECRET,
 };

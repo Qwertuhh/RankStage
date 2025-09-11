@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Pattern -->
+  <defs>
+    <pattern id="grid" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M0 0h40v40H0z" fill="none" stroke="rgba(0,0,0,0.05)" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <rect width="100%" height="100%" fill="url(#grid)"/>
+
+  <!-- Main Elements -->
+  <!-- Trophy -->
+  <g transform="translate(350, 200)">
+    <path d="M50,20 L150,20 L150,120 C150,160 100,180 100,180 C100,180 50,160 50,120 Z" 
+          fill="#FFD700" stroke="#DAA520" stroke-width="4"/>
+    <rect x="90" y="180" width="20" height="40" fill="#DAA520"/>
+    <rect x="60" y="220" width="80" height="10" fill="#DAA520" rx="5"/>
+    <!-- Handles -->
+    <path d="M30,40 C-20,40 -20,100 30,100" fill="none" stroke="#DAA520" stroke-width="8"/>
+    <path d="M170,40 C220,40 220,100 170,100" fill="none" stroke="#DAA520" stroke-width="8"/>
+  </g>
+
+  <!-- Stars -->
+  <g transform="translate(200, 100)">
+    <path d="M10,0 L13,6 L20,7 L15,12 L16,19 L10,16 L4,19 L5,12 L0,7 L7,6 Z" 
+          fill="#FFD700" transform="scale(2)"/>
+  </g>
+  <g transform="translate(500, 150)">
+    <path d="M10,0 L13,6 L20,7 L15,12 L16,19 L10,16 L4,19 L5,12 L0,7 L7,6 Z" 
+          fill="#FFD700" transform="scale(2)"/>
+  </g>
+  <g transform="translate(600, 300)">
+    <path d="M10,0 L13,6 L20,7 L15,12 L16,19 L10,16 L4,19 L5,12 L0,7 L7,6 Z" 
+          fill="#FFD700" transform="scale(2)"/>
+  </g>
+
+  <!-- Progress Bars -->
+  <g transform="translate(200, 400)">
+    <rect x="0" y="0" width="200" height="20" fill="#E0E0E0" rx="10"/>
+    <rect x="0" y="0" width="160" height="20" fill="#4CAF50" rx="10"/>
+  </g>
+  <g transform="translate(200, 440)">
+    <rect x="0" y="0" width="200" height="20" fill="#E0E0E0" rx="10"/>
+    <rect x="0" y="0" width="120" height="20" fill="#2196F3" rx="10"/>
+  </g>
+  <g transform="translate(200, 480)">
+    <rect x="0" y="0" width="200" height="20" fill="#E0E0E0" rx="10"/>
+    <rect x="0" y="0" width="180" height="20" fill="#9C27B0" rx="10"/>
+  </g>
+
+  <!-- Decorative Circles -->
+  <circle cx="150" cy="150" r="30" fill="none" stroke="#FFD700" stroke-width="4" opacity="0.5"/>
+  <circle cx="650" cy="450" r="40" fill="none" stroke="#FFD700" stroke-width="4" opacity="0.5"/>
+  <circle cx="700" cy="100" r="20" fill="none" stroke="#FFD700" stroke-width="4" opacity="0.5"/>
+</svg>

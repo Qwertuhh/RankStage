@@ -3,15 +3,15 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 
-import { SignInForm } from "@/components/auth/signin-form";
+import { SignUpForm } from "@/components/auth/signup-form";
 import { authOptions } from "@/lib/auth";
 
 export const metadata: Metadata = {
-  title: "Sign In - RankStage",
-  description: "Sign in to your RankStage account",
+  title: "Sign Up - RankStage",
+  description: "Create your RankStage account",
 };
 
-export default async function SignInPage() {
+export default async function SignUpPage() {
   const session = await getServerSession(authOptions);
 
   if (session) {
@@ -23,20 +23,20 @@ export default async function SignInPage() {
       <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
         <div className="flex flex-col space-y-2 text-center">
           <h1 className="text-2xl font-semibold tracking-tight">
-            Welcome back
+            Create an account
           </h1>
           <p className="text-sm text-muted-foreground">
-            Enter your credentials to sign in to your account
+            Enter your details to create your account
           </p>
         </div>
-        <SignInForm />
+        <SignUpForm />
         <p className="px-8 text-center text-sm text-muted-foreground">
-          Don&apos;t have an account?{" "}
+          Already have an account?{" "}
           <Link
-            href="/auth/signup"
+            href="/auth/signin"
             className="underline underline-offset-4 hover:text-primary"
           >
-            Sign up
+            Sign in
           </Link>
         </p>
       </div>

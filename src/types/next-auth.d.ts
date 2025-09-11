@@ -1,18 +1,29 @@
 import "next-auth";
+import { UserRole } from "@/types/enums";
 
 declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+      email: string;
+      name: string;
+      role: UserRole;
+    };
+  }
+
   interface User {
     id: string;
     email: string;
     name: string;
-    role: "user" | "admin";
+    role: UserRole;
   }
+}
 
-  interface Session {
-    user: User;
-  }
-
+declare module "next-auth/jwt" {
   interface JWT {
-    role?: "user" | "admin";
+    id: string;
+    email: string;
+    name: string;
+    role: UserRole;
   }
 }
