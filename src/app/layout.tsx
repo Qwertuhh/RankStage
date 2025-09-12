@@ -4,7 +4,6 @@ import "./globals.css";
 import { NextAuthProvider } from "@/providers/next-auth";
 import { ThemeProvider } from "@/providers/theme-provider";
 import ThemeToggle from "@/components/theme-toggle";
-import { Toaster } from "@/components/ui/toaster";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -31,10 +30,7 @@ export default function RootLayout({
           <div className="fixed bottom-4 right-4 z-50">
             <ThemeToggle />
           </div>
-          <NextAuthProvider>
-            {children}
-            <Toaster/>
-          </NextAuthProvider>
+          <NextAuthProvider>{children}</NextAuthProvider>
         </ThemeProvider>
       </body>
     </html>

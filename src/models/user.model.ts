@@ -26,13 +26,10 @@ const userSchema = new mongoose.Schema(
     },
     avatar: {
       type: String,
-      trim: true,
     },
     bio: {
       type: String,
       maxlength: 500,
-      trim: true,
-      default: "",
     },
     resetPasswordToken: String,
     resetPasswordExpires: Date,
@@ -54,8 +51,8 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// Index for password reset
+// Index for email search and password reset
+userSchema.index({ email: 1 });
 userSchema.index({ resetPasswordToken: 1 });
 
-// Check if model exists before creating it to prevent model overwrite warning in development
 export const User = mongoose.models.User || mongoose.model("User", userSchema);

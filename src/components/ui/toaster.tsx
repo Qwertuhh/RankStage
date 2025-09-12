@@ -6,13 +6,13 @@ export function Toaster() {
   return (
     <SonnerToaster
       position="top-right"
-      theme="system"
       toastOptions={{
-        className: "bg-background text-foreground border-border",
+        style: {
+          background: "hsl(var(--background))",
+          color: "hsl(var(--foreground))",
+          border: "1px solid hsl(var(--border))",
+        },
       }}
-      className="dark:!bg-zinc-800"
-      richColors
-      closeButton
     />
   );
 }

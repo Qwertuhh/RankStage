@@ -1,88 +1,34 @@
-type LogLevel = "info" | "warn" | "error";
+import { createLogger, format, transports } from "winston";
 
-interface LogMessage<T> {
-  message: string;
-  error?: Error;
-  context?: Record<string, T>;
-  timestamp: string;
-  level: LogLevel;
+const env = process.env.NODE_ENV || "development";
+
+let logger;
+
+if (env === "production") {
+  logger = createLogger({
+    level: "info",
+    format: format.json(),
+    transports: [
+      new transports.File({ filename: "logs/combined.log" }),
+    ],
+  });
+} else {
+  logger = createLogger({
+    level: "info",
+    format: format.combine(
+      format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+      format.colorize(),
+      format.printf(({ level: level, message: message, timestamp }) => {
+        return `[${timestamp}] ${level.toUpperCase()}: ${message}`;
+      })
+    ),
+    transports: [
+      new transports.Console(),
+      new transports.File({ filename: "logs/error.log", level: "error" }),
+      new transports.File({ filename: "logs/combined.log" }),
+    ],
+  });
 }
 
-class LoggerClass {
-  private static instance: LoggerClass;
-  private isDevelopment = process.env.NODE_ENV === "development";
+export default logger;
 
-  private constructor() {}
-
-  static getInstance(): LoggerClass {
-    if (!LoggerClass.instance) {
-      LoggerClass.instance = new LoggerClass();
-    }
-    return LoggerClass.instance;
-  }
-
-  private formatMessage<T>(log: LogMessage<T>): string {
-    const { timestamp, level, message, error, context } = log;
-    return JSON.stringify({
-      timestamp,
-      level,
-      message,
-      ...(error && { error: this.formatError(error) }),
-      ...(context && { context }),
-    });
-  }
-
-  private formatError(error: Error): object {
-    return {
-      name: error.name,
-      message: error.message,
-      stack: this.isDevelopment ? error.stack : undefined,
-    };
-  }
-
-  private log<T>(
-    level: LogLevel,
-    message: string,
-    error?: Error,
-    context?: Record<string, T>
-  ) {
-    const timestamp = new Date().toISOString();
-    const logMessage: LogMessage<T> = {
-      timestamp,
-      level,
-      message,
-      error,
-      context,
-    };
-
-    const formattedMessage = this.formatMessage(logMessage);
-
-    // In development, log to console with colors
-    if (this.isDevelopment) {
-      const consoleMethod =
-        level === "error" ? "error" : level === "warn" ? "warn" : "log";
-      console[consoleMethod](formattedMessage);
-      if (error?.stack) {
-        console[consoleMethod](error.stack);
-      }
-    }
-
-    // In production, you would typically send this to a logging service
-    // Example: await fetch('/api/logs', { method: 'POST', body: formattedMessage });
-  }
-
-  info(message: string, context?: Record<string, unknown>) {
-    this.log("info", message, undefined, context);
-  }
-
-  warn(message: string, error?: Error, context?: Record<string, unknown>) {
-    this.log("warn", message, error, context);
-  }
-
-  error(message: string, error?: Error, context?: Record<string, unknown>) {
-    this.log("error", message, error, context);
-  }
-}
-
-const Logger = LoggerClass.getInstance();
-export default Logger;

@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { Button } from "@/components/ui/button";
 import { authOptions } from "@/lib/auth";
 import { UserNav } from "@/components/layout/user-nav";
+import Logo from "@/components/logo";
+
 
 export async function Navbar() {
   const session = await getServerSession(authOptions);
@@ -11,13 +13,7 @@ export async function Navbar() {
     <div className="border-b">
       <div className="flex h-16 items-center px-4 container mx-auto">
         <div className="flex items-center space-x-2">
-          <Link
-            href="/"
-            className="font-semibold text-xl flex items-center space-x-2"
-          >
-            <span className="text-primary">Rank</span>
-            <span>Stage</span>
-          </Link>
+          <Logo className="h-8 w-8" />
         </div>
         <div className="ml-auto flex items-center space-x-4">
           {session ? (

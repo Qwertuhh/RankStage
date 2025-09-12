@@ -1,44 +1,18 @@
-import { Metadata } from "next";
+import  SignUpForm from "@/components/auth/signup-form";
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
+import Logo from "@/components/logo";
 
-import { SignUpForm } from "@/components/auth/signup-form";
-import { authOptions } from "@/lib/auth";
-
-export const metadata: Metadata = {
-  title: "Sign Up - RankStage",
-  description: "Create your RankStage account",
-};
-
-export default async function SignUpPage() {
-  const session = await getServerSession(authOptions);
-
-  if (session) {
-    redirect("/dashboard");
-  }
-
+export default function LoginPage() {
   return (
-    <div className="container flex h-screen w-screen flex-col items-center justify-center">
-      <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
-        <div className="flex flex-col space-y-2 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Create an account
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Enter your details to create your account
-          </p>
-        </div>
+    <div className="bg-muted flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
+      <div className="flex w-full max-w-sm flex-col gap-6">
+        <Link
+          href="/signup"
+          className="flex items-center gap-2 self-center font-medium"
+        >
+            <Logo />
+        </Link>
         <SignUpForm />
-        <p className="px-8 text-center text-sm text-muted-foreground">
-          Already have an account?{" "}
-          <Link
-            href="/auth/signin"
-            className="underline underline-offset-4 hover:text-primary"
-          >
-            Sign in
-          </Link>
-        </p>
       </div>
     </div>
   );

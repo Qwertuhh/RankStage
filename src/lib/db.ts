@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import Logger from "@/lib/logger";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
@@ -17,9 +16,6 @@ const connection: MongooseConnection = {
   isConnected: false,
 };
 
-// Configure Mongoose for better performance and error handling
-mongoose.set("strictQuery", true);
-
 async function connectDB(): Promise<typeof mongoose> {
   if (connection.isConnected) {
     return mongoose;
@@ -28,22 +24,14 @@ async function connectDB(): Promise<typeof mongoose> {
   try {
     const db = await mongoose.connect(MONGODB_URI!, {
       bufferCommands: false,
-      maxPoolSize: 10,
     });
 
     connection.isConnected = !!db.connections[0].readyState;
 
-    Logger.info("MongoDB connected successfully", {
-      host: db.connection.host,
-      database: db.connection.name,
-    });
-
+    console.log("MongoDB connected successfully");
     return db;
   } catch (error) {
-    Logger.error(
-      "Error connecting to MongoDB",
-      error instanceof Error ? error : new Error(String(error))
-    );
+    console.error("Error connecting to MongoDB:", error);
     throw error;
   }
 }
