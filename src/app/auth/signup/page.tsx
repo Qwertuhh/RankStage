@@ -10,9 +10,15 @@ export default function LoginPage() {
           href="/signup"
           className="flex items-center gap-2 self-center font-medium"
         >
-            <Logo />
+          <Logo />
         </Link>
         <SignUpForm />
+        <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
+          Already have an account?{" "}
+          <a href="/auth/signin" className="font-semibold text-primary">
+            Sign In
+          </a>
+        </div>
       </div>
     </div>
   );

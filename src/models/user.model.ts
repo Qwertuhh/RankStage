@@ -62,13 +62,15 @@ const userSchema = new mongoose.Schema<IUser>(
   {
     timestamps: true,
     toJSON: {
-      transform: function (doc, ret) {
+      transform: function (_, ret) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { password, __v, ...rest } = ret as { password?: string; __v?: number };
         return rest;
       },
     },
     toObject: {
-      transform: function (doc, ret) {
+      transform: function (_, ret) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { password, __v, ...rest } = ret as { password?: string; __v?: number };
         return rest;
       },

@@ -21,3 +21,4 @@
 [2025-09-13 20:48:57] [32MINFO[39M: Connected to MongoDB
 [2025-09-13 20:48:58] [31MERROR[39M: Signup error: User validation failed: avatar: Cast to ObjectId failed for value "" (type string) at path "avatar" because of "BSONError"
 [2025-09-13 20:53:16] [32MINFO[39M: Connected to MongoDB
+[2025-09-13 21:06:16] [32MINFO[39M: Connected to MongoDB
