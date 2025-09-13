@@ -1,0 +1,23 @@
+[2025-09-13 19:26:18] [32MINFO[39M: New user signed up: Qwertuhh gf
+[2025-09-13 19:26:18] [31MERROR[39M: Avatar upload failed: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[2025-09-13 19:34:18] [32MINFO[39M: No avatar file provided during signup. 
+[2025-09-13 19:34:19] [32MINFO[39M: New user signed up: Qwertuhh ss
+[2025-09-13 19:50:11] [32MINFO[39M: No avatar file provided during signup. 
+[2025-09-13 19:50:11] [32MINFO[39M: New user signed up: Qwertuhh dddddddd
+[2025-09-13 19:51:51] [32MINFO[39M: No avatar file provided during signup. 
+[2025-09-13 19:51:51] [32MINFO[39M: New user signed up: Qwertuhh hhhhh
+[2025-09-13 19:53:15] [32MINFO[39M: No avatar file provided during signup. 
+[2025-09-13 19:53:15] [32MINFO[39M: New user signed up: Qwertuhh ssssss
+[2025-09-13 19:56:33] [32MINFO[39M: No avatar file provided during signup. 
+[2025-09-13 19:56:33] [32MINFO[39M: New user signed up: Qwertuhh dd
+[2025-09-13 19:57:07] [32MINFO[39M: No avatar file provided during signup. 
+[2025-09-13 19:57:07] [32MINFO[39M: New user signed up: Qwertuhh xxx
+[2025-09-13 19:57:37] [31MERROR[39M: Avatar upload failed: SyntaxError: Failed to execute 'json' on 'Response': Unexpected end of JSON input
+[2025-09-13 19:57:38] [32MINFO[39M: New user signed up: Qwertuhh xx
+[2025-09-13 20:06:34] [31MERROR[39M: Avatar upload failed: SyntaxError: Failed to execute 'json' on 'Response': Unexpected end of JSON input
+[2025-09-13 20:06:35] [32MINFO[39M: New user signed up: Qwertuhh dddd
+[2025-09-13 20:40:48] [32MINFO[39M: Connected to MongoDB
+[2025-09-13 20:40:49] [31MERROR[39M: Signup error: User validation failed: avatar: Cast to ObjectId failed for value "" (type string) at path "avatar" because of "BSONError"
+[2025-09-13 20:48:57] [32MINFO[39M: Connected to MongoDB
+[2025-09-13 20:48:58] [31MERROR[39M: Signup error: User validation failed: avatar: Cast to ObjectId failed for value "" (type string) at path "avatar" because of "BSONError"
+[2025-09-13 20:53:16] [32MINFO[39M: Connected to MongoDB

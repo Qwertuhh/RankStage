@@ -24,6 +24,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { RotateCcw } from "lucide-react";
 
 const formSchema = z
   .object({
@@ -33,7 +35,12 @@ const formSchema = z
     lastName: z.string().min(2, {
       message: "Last name must be at least 2 characters.",
     }),
-    avatar: z.any().optional(), // Change to any for file input
+    email: z.string().email({
+      message: "Please enter a valid email address.",
+    }),
+    avatar: z.file({
+      message: "Avatar is required.",
+    }),
     bio: z
       .string()
       .max(160, {
@@ -59,12 +66,38 @@ const formSchema = z
     path: ["confirmPassword"],
   });
 
+async function uploadAvatar(avatarFile: File) {
+  let avatarId = null;
+  try {
+    if (avatarFile) {
+      const data = new FormData();
+      data.append("avatar", avatarFile);
+
+      const res = await fetch("/api/user/upload-avatar", {
+        method: "POST",
+        body: data,
+      });
+
+      const result = await res.json();
+      avatarId = result.fileId;
+      toast.success("Avatar uploaded successfully!");
+    } else {
+      toast.info("No avatar uploaded.");
+      console.log("No avatar file provided during signup.");
+    }
+  } catch (error) {
+    toast.error("Failed to upload avatar.");
+    console.error("Avatar upload failed:", error);
+  }
+  return avatarId;
+}
 function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
-  const form = useForm({
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       firstName: "",
       lastName: "",
+      email: "",
       avatar: undefined,
       bio: "",
       location: "",
@@ -74,8 +107,83 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
+    toast.loading("Creating your account...");
+    try {
+      // Show loading state
+      const toastId = toast.loading("Creating your account...");
+
+      // Upload avatar if present
+      let avatarId = undefined;
+      if (values.avatar) {
+        try {
+          const uploadResult = await uploadAvatar(values.avatar);
+          if (uploadResult) {
+            avatarId = uploadResult;
+          }
+        } catch (error) {
+          console.error("Avatar upload failed:", error);
+          // Continue without avatar if upload fails
+          toast.warning(
+            "Avatar upload failed, but you can continue without it."
+          );
+        }
+      }
+
+          // Prepare user data for signup
+      const userData = {
+        firstName: values.firstName.trim(),
+        lastName: values.lastName.trim(),
+        email: values.email.toLowerCase().trim(),
+        password: values.password,
+        bio: values.bio?.trim() || "",
+        location: values.location?.trim() || "",
+        ...(avatarId && { avatar: avatarId }) // Only include avatar if it exists
+      };
+
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(userData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error || "Failed to create account. Please try again."
+        );
+      }
+
+      // Update success toast
+      toast.success("Account created successfully! Redirecting...", {
+        id: toastId,
+      });
+
+      // Reset form
+      form.reset();
+
+      // Redirect to login or dashboard
+      window.location.href = "/auth/signin";
+    } catch (error: unknown) {
+      console.error("Signup error:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to create account. Please try again.";
+
+      // Show error toast
+      toast.error(errorMessage);
+
+      // Re-enable form
+      form.setError("root", {
+        type: "manual",
+        message: errorMessage,
+      });
+    }
   }
 
   return (
@@ -118,6 +226,20 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
                   )}
                 />
               </div>
+
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input placeholder="john@example.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
@@ -232,16 +354,26 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
                   </FormItem>
                 )}
               />
-
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={form.formState.isSubmitting}
-              >
-                {form.formState.isSubmitting
-                  ? "Submitting..."
-                  : "Create Account"}
-              </Button>
+              <div className="flex justify-center items-center gap-2 w-full px-4">
+                <Button
+                  type="submit"
+                  className="w-full cursor-pointer"
+                  disabled={form.formState.isSubmitting}
+                >
+                  {form.formState.isSubmitting
+                    ? "Submitting..."
+                    : "Create Account"}
+                </Button>
+                <Button
+                  size="icon"
+                  className=""
+                  onClick={() => {
+                    form.reset();
+                  }}
+                >
+                  <RotateCcw />
+                </Button>
+              </div>
             </form>
           </Form>
         </CardContent>

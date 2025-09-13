@@ -1,0 +1,5 @@
+[2025-09-13 19:26:18] [31MERROR[39M: Avatar upload failed: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[2025-09-13 19:57:37] [31MERROR[39M: Avatar upload failed: SyntaxError: Failed to execute 'json' on 'Response': Unexpected end of JSON input
+[2025-09-13 20:06:34] [31MERROR[39M: Avatar upload failed: SyntaxError: Failed to execute 'json' on 'Response': Unexpected end of JSON input
+[2025-09-13 20:40:49] [31MERROR[39M: Signup error: User validation failed: avatar: Cast to ObjectId failed for value "" (type string) at path "avatar" because of "BSONError"
+[2025-09-13 20:48:58] [31MERROR[39M: Signup error: User validation failed: avatar: Cast to ObjectId failed for value "" (type string) at path "avatar" because of "BSONError"
