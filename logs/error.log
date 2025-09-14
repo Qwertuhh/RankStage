@@ -3,3 +3,10 @@
 [2025-09-13 20:06:34] [31MERROR[39M: Avatar upload failed: SyntaxError: Failed to execute 'json' on 'Response': Unexpected end of JSON input
 [2025-09-13 20:40:49] [31MERROR[39M: Signup error: User validation failed: avatar: Cast to ObjectId failed for value "" (type string) at path "avatar" because of "BSONError"
 [2025-09-13 20:48:58] [31MERROR[39M: Signup error: User validation failed: avatar: Cast to ObjectId failed for value "" (type string) at path "avatar" because of "BSONError"
+[2025-09-14 21:30:26] [31MERROR[39M: User not found
+[2025-09-14 21:30:35] [31MERROR[39M: Invalid password
+[2025-09-14 21:30:45] [31MERROR[39M: Invalid password
+[2025-09-14 21:33:30] [31MERROR[39M: Invalid password
+[2025-09-14 21:33:38] [31MERROR[39M: Invalid password
+[2025-09-14 21:36:14] [31MERROR[39M: Invalid password
+[2025-09-14 21:37:03] [31MERROR[39M: Invalid password

@@ -3,7 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcrypt";
 import connectDB from "@/lib/db";
 import { User } from "@/models/user.model";
-import Logger from "@/lib/logger";
+import logger from "@/lib/logger";
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
@@ -26,25 +26,32 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         try {
           if (!credentials?.email || !credentials?.password) {
-            Logger.error("Missing credentials");
+            logger.error("Missing credentials");
             return null;
           }
 
           await connectDB();
-
-          const user = await User.findOne({ 
-            email: credentials.email.toLowerCase() 
+          logger.info("Connected to MongoDB");
+          const user = await User.findOne({
+            email: credentials.email.toLowerCase(),
           }).select("+password");
 
           if (!user) {
-            Logger.error("User not found", undefined, { email: credentials.email });
+            logger.error("User not found", undefined, {
+              email: credentials.email,
+            });
             return null;
           }
 
-          const isPasswordValid = await compare(credentials.password, user.password);
+          const isPasswordValid = await compare(
+            credentials.password,
+            user.password
+          );
 
           if (!isPasswordValid) {
-            Logger.error("Invalid password", undefined, { email: credentials.email });
+            logger.error("Invalid password", undefined, {
+              email: credentials.email,
+            });
             return null;
           }
 
@@ -55,7 +62,7 @@ export const authOptions: NextAuthOptions = {
             role: user.role,
           };
         } catch (error) {
-          Logger.error(
+          logger.error(
             "Authentication error",
             error instanceof Error ? error : new Error("Unknown error")
           );
