@@ -1,4 +1,6 @@
 "use client";
+
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,11 +16,14 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
+import { toast } from "sonner";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { signIn } from "next-auth/react";
+import clientLogger from "@/lib/sdk/client-logger";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -36,17 +41,39 @@ function SigninForm({ className, ...props }: React.ComponentProps<"div">) {
       password: "",
     },
   });
+  const [isLoading, setIsLoading] = useState(false);
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
-    const res = await signIn("credentials", {
-      email: values.email,
-      password: values.password,
-      redirect: true,
-      callbackUrl: "/dashboard",
-    });
-    console.log(res);
+    setIsLoading(true);
+    
+    try {
+      const result = await signIn("credentials", {
+        email: values.email,
+        password: values.password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        // Handle specific error cases
+        if (result.error.includes('CredentialsSignin')) {
+          clientLogger( "error", "Invalid email or password. Please try again.")
+          toast.error('Invalid email or password. Please try again.');
+        } else {
+          clientLogger( "error", "An error occurred during sign in. Please try again.")
+          toast.error('An error occurred during sign in. Please try again.');
+        }
+        console.error('Sign in error:', result.error);
+      } else if (result?.url) {
+        // Redirect on success
+        window.location.href = result.url || '/dashboard';
+      }
+    } catch (error) {
+      console.error('Sign in error:', error);
+      clientLogger( "error", "An unexpected error occurred. Please try again.")
+      toast.error('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   }
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -78,7 +105,7 @@ function SigninForm({ className, ...props }: React.ComponentProps<"div">) {
                         />
                       </FormControl>
                       <FormDescription>
-                        Enter your Email correctly
+                        Enter your email address
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -104,7 +131,9 @@ function SigninForm({ className, ...props }: React.ComponentProps<"div">) {
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full">SignIn</Button>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? 'Signing in...' : 'Sign in'}
+                </Button>
               </form>
             </Form>
 
