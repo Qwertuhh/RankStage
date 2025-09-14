@@ -84,11 +84,17 @@ const userSchema = new mongoose.Schema<IUser>(
 
 // Pre-save hook to hash password if modified
 userSchema.pre('save', async function (next) {
+  // Only hash the password if it has been modified (or is new)
   if (!this.isModified('password')) return next();
   
   try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
+    // Check if the password is already hashed (starts with $2b$)
+    const isAlreadyHashed = /^\$2[ayb]\$.{56}$/.test(this.password);
+    
+    if (!isAlreadyHashed) {
+      const salt = await bcrypt.genSalt(10);
+      this.password = await bcrypt.hash(this.password, salt);
+    }
     next();
   } catch (error) {
     next(error as Error);

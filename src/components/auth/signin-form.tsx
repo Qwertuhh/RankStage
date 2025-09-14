@@ -21,8 +21,8 @@ import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-
 import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import clientLogger from "@/lib/sdk/client-logger";
 
 const formSchema = z.object({
@@ -42,6 +42,7 @@ function SigninForm({ className, ...props }: React.ComponentProps<"div">) {
     },
   });
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
@@ -64,9 +65,11 @@ function SigninForm({ className, ...props }: React.ComponentProps<"div">) {
         }
         console.error('Sign in error:', result.error);
       } else if (result?.url) {
-        // Redirect on success
-        window.location.href = result.url || '/dashboard';
+        // Show success message and redirect to domains page
+        toast.success('Successfully signed in!');
+        router.push('/domains');
       }
+      
     } catch (error) {
       console.error('Sign in error:', error);
       clientLogger( "error", "An unexpected error occurred. Please try again.")
@@ -131,7 +134,7 @@ function SigninForm({ className, ...props }: React.ComponentProps<"div">) {
                     </FormItem>
                   )}
                 />
-                <Button type="submit" disabled={isLoading}>
+                <Button type="submit" disabled={isLoading} className="w-full">
                   {isLoading ? 'Signing in...' : 'Sign in'}
                 </Button>
               </form>

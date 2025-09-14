@@ -39,3 +39,20 @@
 [2025-09-14 21:50:09] [33MWARN[39M: Invalid password attempt
 [2025-09-14 21:50:09] [31MERROR[39M: Authentication error
 [2025-09-14 21:50:10] [31MERROR[39M: An error occurred during sign in. Please try again. 
+[2025-09-14 21:57:09] [32MINFO[39M: Connected to MongoDB
+[2025-09-14 21:57:23] [32MINFO[39M: Connected to MongoDB
+[2025-09-14 21:57:23] [32MINFO[39M: User authenticated successfully
+[2025-09-14 21:57:23] [32MINFO[39M: User signed in
+[2025-09-14 22:00:59] [32MINFO[39M: User signed out
+[2025-09-14 22:01:07] [32MINFO[39M: Connected to MongoDB
+[2025-09-14 22:01:07] [32MINFO[39M: User authenticated successfully
+[2025-09-14 22:01:07] [32MINFO[39M: User signed in
+[2025-09-14 22:03:58] [32MINFO[39M: Connected to MongoDB
+[2025-09-14 22:03:59] [32MINFO[39M: User authenticated successfully
+[2025-09-14 22:03:59] [32MINFO[39M: User signed in
+[2025-09-14 22:05:38] [32MINFO[39M: Connected to MongoDB
+[2025-09-14 22:05:38] [32MINFO[39M: User authenticated successfully
+[2025-09-14 22:05:38] [32MINFO[39M: User signed in
+[2025-09-14 22:06:39] [32MINFO[39M: Connected to MongoDB
+[2025-09-14 22:06:40] [32MINFO[39M: User authenticated successfully
+[2025-09-14 22:06:40] [32MINFO[39M: User signed in

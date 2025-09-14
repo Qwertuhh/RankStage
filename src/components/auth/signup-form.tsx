@@ -141,12 +141,9 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-    toast.loading("Creating your account...");
+    const toastId = toast.loading("Creating your account...");
+    
     try {
-      // Show loading state
-      const toastId = toast.loading("Creating your account...");
-
       // Upload avatar if present
       let avatarId = undefined;
       if (values.avatar) {
@@ -158,18 +155,17 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
         } catch (error) {
           console.error("Avatar upload failed:", error);
           // Continue without avatar if upload fails
-          toast.warning(
-            "Avatar upload failed, but you can continue without it."
-          );
+          toast.warning("Avatar upload failed, but you can continue without it.", { id: toastId });
         }
       }
 
-          // Prepare user data for signup
+      // Prepare user data for signup
       const userData = {
         firstName: values.firstName.trim(),
         lastName: values.lastName.trim(),
         email: values.email.toLowerCase().trim(),
         password: values.password,
+        confirmPassword: values.confirmPassword,
         bio: values.bio?.trim() || "",
         location: values.location?.trim() || "",
         ...(avatarId && { avatar: avatarId }) // Only include avatar if it exists
@@ -186,21 +182,33 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(
-          data.error || "Failed to create account. Please try again."
-        );
+        // Handle validation errors
+        if (data.details) {
+          // Set form field errors
+          type FormField = keyof z.infer<typeof formSchema>;
+          
+          Object.entries(data.details).forEach(([field, error]) => {
+            const fieldName = field as FormField;
+            form.setError(fieldName, {
+              type: 'manual',
+              message: Array.isArray(error) ? error[0]._errors[0] : String(error)
+            });
+          });
+          throw new Error("Please fix the form errors and try again.");
+        }
+        throw new Error(data.error || "Failed to create account. Please try again.");
       }
 
-      // Update success toast
-      toast.success("Account created successfully! Redirecting...", {
-        id: toastId,
-      });
-
+      // Show success message and redirect
+      toast.success("Account created successfully! Redirecting to login...", { id: toastId });
+      
       // Reset form
       form.reset();
-
-      // Redirect to login or dashboard
-      window.location.href = "/auth/signin";
+      
+      // Redirect to login after a short delay
+      setTimeout(() => {
+        window.location.href = "/auth/signin";
+      }, 2000);
     } catch (error: unknown) {
       console.error("Signup error:", error);
       const errorMessage =
