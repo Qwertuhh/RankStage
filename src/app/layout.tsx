@@ -5,6 +5,7 @@ import { NextAuthProvider } from "@/providers/next-auth";
 import { ThemeProvider } from "@/providers/theme-provider";
 import ThemeToggle from "@/components/theme-toggle";
 import { Toaster } from "sonner";
+import { Navbar } from "@/components/layout/navbar";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -29,6 +30,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <Navbar />
           <Toaster position="bottom-right" richColors closeButton />
           <div className="fixed bottom-4 right-4 z-50">
             <ThemeToggle />

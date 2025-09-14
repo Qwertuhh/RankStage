@@ -1,13 +1,10 @@
 import Image from "next/image";
-import { Navbar } from "@/components/layout/navbar";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
-      <Navbar />
-
       <main className="flex-1">
         <section className="py-20">
           <div className="container mx-auto px-4">
