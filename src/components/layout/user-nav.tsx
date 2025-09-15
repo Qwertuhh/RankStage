@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
-
+import UserAvatar from "@/components/layout/userAvatar";
 import { UserRole } from "@/types/enums";
 
 interface UserNavProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -31,11 +31,13 @@ function UserNav({ user }: UserNavProps) {
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
             {user.avatar ? (
-              <AvatarImage 
-                src={`/api/auth/avatar/${user.avatar}`}
-                alt={user.name || "User"}
-                className="object-cover"
-              />
+              // <AvatarImage 
+              //   src={`/api/auth/avatar/${user.avatar}`}
+              //   alt={user.name || "User"}
+              //   className="object-cover"
+              // />
+
+              <UserAvatar preview={`/api/auth/avatar/${user.avatar}`} />
             ) : (
               <AvatarFallback className="bg-primary/10">
                 <span className="text-sm font-medium text-primary">

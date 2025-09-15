@@ -37,8 +37,6 @@ export const authOptions: NextAuthOptions = {
             email: credentials.email.toLowerCase().trim(),
           }).select("+password +avatar");
 
-          console.log(user);
-
           if (!user) {
             logger.warn("User not found", {
               email: credentials.email,

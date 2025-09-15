@@ -8,7 +8,6 @@ import Logo from "@/components/logo";
 
 export async function Navbar() {
   const session = await getServerSession(authOptions);
-console.log(session);
   return (
     <div className="border-b">
       <div className="flex h-16 items-center px-4 container mx-auto">

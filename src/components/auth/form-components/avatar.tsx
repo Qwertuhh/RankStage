@@ -15,6 +15,7 @@ import { Upload, X } from "lucide-react";
 import Image from "next/image";
 import { useState, useRef, ChangeEvent } from "react";
 import { toast } from "sonner";
+import UserAvatar from "@/components/layout/userAvatar";
 
 type FormData = z.infer<typeof formSchema>;
 
@@ -63,14 +64,7 @@ function NameComponent({ form }: { form: UseFormReturn<FormData> }) {
           <div className="space-y-4">
             {preview ? (
               <div className="relative w-26 h-26 overflow-hidden">
-                <Image
-                  src={preview}
-                  alt="Avatar preview"
-                  fill
-                  className="object-fill p-1"
-                  sizes="96px"
-                  priority
-                />
+                <UserAvatar preview={preview} />
                 <button
                   type="button"
                   onClick={() => handleRemoveImage(onChange)}
