@@ -1,10 +1,10 @@
-export enum UserRole {
+enum UserRole {
   ADMIN = "ADMIN",
   MODERATOR = "MODERATOR",
   USER = "USER",
 }
 
-export enum QuizType {
+enum QuizType {
   MULTIPLE_CHOICE_SINGLE = "MULTIPLE_CHOICE_SINGLE",
   MULTIPLE_CHOICE_MULTIPLE = "MULTIPLE_CHOICE_MULTIPLE",
   SHORT_ANSWER = "SHORT_ANSWER",
@@ -13,7 +13,7 @@ export enum QuizType {
   CUSTOM_FORMAT = "CUSTOM_FORMAT",
 }
 
-export enum OnboardingFieldType {
+enum OnboardingFieldType {
   TEXT = "TEXT",
   TEXTAREA = "TEXTAREA",
   NUMBER = "NUMBER",
@@ -25,13 +25,21 @@ export enum OnboardingFieldType {
   JSON = "JSON",
 }
 
-export enum SubmissionStatus {
+enum SubmissionStatus {
   PENDING = "PENDING",
   APPROVED = "APPROVED",
   REJECTED = "REJECTED",
 }
 
-export enum SubmissionType {
+enum SubmissionType {
   ONBOARDING = "ONBOARDING",
   QUIZ = "QUIZ",
 }
+
+export {
+  UserRole,
+  QuizType,
+  OnboardingFieldType,
+  SubmissionStatus,
+  SubmissionType,
+};

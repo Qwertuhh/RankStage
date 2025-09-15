@@ -1,37 +1,40 @@
 import mongoose from "mongoose";
 import { UserRole } from "@/types/enums";
 import { IUser, UserDocument, PopulatedUserDocument } from "@/types/models";
-import bcrypt from 'bcrypt';
+import bcrypt from "bcrypt";
 
 const userSchema = new mongoose.Schema<IUser>(
   {
     email: {
       type: String,
-      required: [true, 'Email is required'],
+      required: [true, "Email is required"],
       unique: true,
       lowercase: true,
       trim: true,
-      match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Please provide a valid email address'],
+      match: [
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+        "Please provide a valid email address",
+      ],
     },
     name: {
       type: String,
-      required: [true, 'Name is required'],
+      required: [true, "Name is required"],
       trim: true,
     },
     firstName: {
       type: String,
-      required: [true, 'First name is required'],
+      required: [true, "First name is required"],
       trim: true,
     },
     lastName: {
       type: String,
-      required: [true, 'Last name is required'],
+      required: [true, "Last name is required"],
       trim: true,
     },
     password: {
       type: String,
-      required: [true, 'Password is required'],
-      minlength: [8, 'Password must be at least 8 characters long'],
+      required: [true, "Password is required"],
+      minlength: [8, "Password must be at least 8 characters long"],
       select: false,
     },
     role: {
@@ -41,18 +44,18 @@ const userSchema = new mongoose.Schema<IUser>(
     },
     avatar: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'avatars.files',
+      ref: "avatars.files",
       default: null,
     },
     bio: {
       type: String,
-      maxlength: [500, 'Bio cannot exceed 500 characters'],
-      default: '',
+      maxlength: [500, "Bio cannot exceed 500 characters"],
+      default: "",
     },
     location: {
       type: String,
-      maxlength: [100, 'Location cannot exceed 100 characters'],
-      default: '',
+      maxlength: [100, "Location cannot exceed 100 characters"],
+      default: "",
     },
     isActive: {
       type: Boolean,
@@ -64,14 +67,20 @@ const userSchema = new mongoose.Schema<IUser>(
     toJSON: {
       transform: function (_, ret) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { password, __v, ...rest } = ret as { password?: string; __v?: number };
+        const { password, __v, ...rest } = ret as {
+          password?: string;
+          __v?: number;
+        };
         return rest;
       },
     },
     toObject: {
       transform: function (_, ret) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { password, __v, ...rest } = ret as { password?: string; __v?: number };
+        const { password, __v, ...rest } = ret as {
+          password?: string;
+          __v?: number;
+        };
         return rest;
       },
     },
@@ -83,14 +92,14 @@ const userSchema = new mongoose.Schema<IUser>(
 // userSchema.index({ role: 1 });
 
 // Pre-save hook to hash password if modified
-userSchema.pre('save', async function (next) {
+userSchema.pre("save", async function (next) {
   // Only hash the password if it has been modified (or is new)
-  if (!this.isModified('password')) return next();
-  
+  if (!this.isModified("password")) return next();
+
   try {
     // Check if the password is already hashed (starts with $2b$)
     const isAlreadyHashed = /^\$2[ayb]\$.{56}$/.test(this.password);
-    
+
     if (!isAlreadyHashed) {
       const salt = await bcrypt.genSalt(10);
       this.password = await bcrypt.hash(this.password, salt);
@@ -102,12 +111,15 @@ userSchema.pre('save', async function (next) {
 });
 
 // Method to compare passwords
-userSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
+userSchema.methods.comparePassword = async function (
+  candidatePassword: string
+): Promise<boolean> {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
 // At the bottom of the file, replace the existing model definition with:
-const User = mongoose.models.User || mongoose.model<UserDocument>('User', userSchema);
+const User =
+  mongoose.models.User || mongoose.model<UserDocument>("User", userSchema);
 
 export type { UserDocument, PopulatedUserDocument };
 export { User };
