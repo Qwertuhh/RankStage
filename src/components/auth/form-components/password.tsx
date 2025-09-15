@@ -14,7 +14,7 @@ type FormData = z.infer<typeof formSchema>;
 
 function BioComponent({ form }: { form: UseFormReturn<FormData> }) {
   return (
-    <div>
+    <div className="space-y-4">
       <FormField
         control={form.control}
         name="password"

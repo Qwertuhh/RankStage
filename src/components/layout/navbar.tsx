@@ -16,8 +16,13 @@ export async function Navbar() {
           <Logo className="h-8 w-8" />
         </div>
         <div className="ml-auto flex items-center space-x-4">
-          {session ? (
-            <UserNav user={session.user?? { name: "", email: "", image: "" }} />
+          {session?.user ? (
+            <UserNav user={{
+              name: session.user.name ?? "",
+              email: session.user.email ?? "",
+              image: session.user.image ?? null,
+              role: session.user.role
+            }} />
           ) : (
             <div className="flex items-center space-x-4">
               <Link href="/auth/signin">

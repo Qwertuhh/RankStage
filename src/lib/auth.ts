@@ -32,10 +32,12 @@ export const authOptions: NextAuthOptions = {
         try {
           await connectDB();
           logger.info("Connected to MongoDB");
-          
+
           const user = await User.findOne({
             email: credentials.email.toLowerCase().trim(),
-          }).select("+password");
+          }).select("+password +avatar");
+
+          console.log(user);
 
           if (!user) {
             logger.warn("User not found", {
@@ -51,7 +53,9 @@ export const authOptions: NextAuthOptions = {
               userId: user._id,
               email: user.email,
             });
-            throw new Error("Account configuration error. Please contact support.");
+            throw new Error(
+              "Account configuration error. Please contact support."
+            );
           }
 
           const isPasswordValid = await compare(
@@ -73,7 +77,9 @@ export const authOptions: NextAuthOptions = {
               userId: user._id,
               email: user.email,
             });
-            throw new Error("This account has been deactivated. Please contact support.");
+            throw new Error(
+              "This account has been deactivated. Please contact support."
+            );
           }
 
           logger.info("User authenticated successfully", {
@@ -86,17 +92,18 @@ export const authOptions: NextAuthOptions = {
             id: user._id.toString(),
             email: user.email,
             name: `${user.firstName} ${user.lastName}`.trim(),
-            role: user.role || 'USER',
+            role: user.role || "USER",
             image: user.avatar,
           };
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Authentication failed';
+          const errorMessage =
+            error instanceof Error ? error.message : "Authentication failed";
           logger.error("Authentication error", {
             error: errorMessage,
             email: credentials.email,
             timestamp: new Date().toISOString(),
           });
-          
+
           // Rethrow the error to be handled by NextAuth
           throw new Error(errorMessage);
         }
@@ -111,12 +118,13 @@ export const authOptions: NextAuthOptions = {
       else if (new URL(url).origin === baseUrl) return url;
       return baseUrl + "/domains";
     },
-    async session({ session, token }) {
-      if (token && session.user) {
-        session.user.id = token.sub || "";
-        session.user.role = token.role || "USER";
-        session.user.name = token.name || "";
-        session.user.email = token.email || "";
+    session({ session, token }) {
+      if (token) {
+        session.user.id = token.id;
+        session.user.name = token.name;
+        session.user.email = token.email;
+        session.user.role = token.role;
+        session.user.image = token.image as string | null | undefined;
       }
       return session;
     },

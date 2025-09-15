@@ -23,7 +23,17 @@ import {
   BioComponent,
   NameComponent,
   SubmitForm,
-} from "@/components/auth/signup-components";
+} from "@/components/auth/form-components";
+import { useState, useEffect, useMemo } from "react";
+import { Button } from "../ui/button";
+import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
+
+type FormStep = {
+  id: string;
+  title: string;
+  component: React.ReactNode;
+  fields: (keyof z.infer<typeof formSchema>)[];
+};
 
 async function uploadAvatar(avatarFile: File) {
   let avatarId = null;
@@ -50,6 +60,7 @@ async function uploadAvatar(avatarFile: File) {
   }
   return avatarId;
 }
+
 function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -65,6 +76,76 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
       acceptTerms: false,
     },
   });
+
+  const formSteps = useMemo<FormStep[]>(
+    () => [
+      {
+        id: "name",
+        title: "Name",
+        component: <NameComponent form={form} />,
+        fields: ["firstName", "lastName"],
+      },
+      {
+        id: "email",
+        title: "Email",
+        component: <EmailComponent form={form} />,
+        fields: ["email"],
+      },
+      {
+        id: "avatar",
+        title: "Avatar",
+        component: <AvatarComponent form={form} />,
+        fields: ["avatar"],
+      },
+      {
+        id: "bio",
+        title: "Bio",
+        component: <BioComponent form={form} />,
+        fields: ["bio"],
+      },
+      {
+        id: "location",
+        title: "Location",
+        component: <LocationComponent form={form} />,
+        fields: ["location"],
+      },
+      {
+        id: "password",
+        title: "Password",
+        component: <PasswordComponent form={form} />,
+        fields: ["password", "confirmPassword"],
+      },
+      {
+        id: "terms",
+        title: "Terms",
+        component: <TermsComponent form={form} />,
+        fields: ["acceptTerms"],
+      },
+      {
+        id: "submit",
+        title: "Submit",
+        component: <SubmitForm form={form} />,
+        fields: [],
+      },
+    ],
+    [form]
+  );
+  const [currentStep, setCurrentStep] = useState(0);
+  const [hasFormErrors, setHasFormErrors] = useState(false);
+
+  // Update form error state when form state changes
+  useEffect(() => {
+    const subscription = form.watch(() => {
+      // Check if any of the current step's fields have errors
+      const currentFields = formSteps[currentStep]?.fields || [];
+      const hasErrors = currentFields.some(
+        (field) => !!form.formState.errors[field]
+      );
+      setHasFormErrors(hasErrors);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [currentStep, form, formSteps]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const toastId = toast.loading("Creating your account...");
@@ -174,15 +255,31 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <NameComponent form={form} />
-              <EmailComponent form={form} />
-
-              <AvatarComponent form={form} />
-              <BioComponent form={form} />
-              <LocationComponent form={form} />
-              <PasswordComponent form={form} />
-              <TermsComponent form={form} />
-              <SubmitForm form={form} />
+              {formSteps[currentStep].component}
+              <div className="flex justify-start gap-2">
+                <Button
+                  type="button"
+                  onClick={() => {
+                    if (currentStep > 0) setCurrentStep(currentStep - 1);
+                  }}
+                >
+                  <ArrowBigLeft />
+                </Button>
+                <Button
+                  type="button"
+                  onClick={async () => {
+                    const fields = formSteps[currentStep]?.fields || [];
+                    const isValid = await form.trigger(fields);
+                    if (isValid) {
+                      setCurrentStep(currentStep + 1);
+                      setHasFormErrors(false);
+                    }
+                  }}
+                  disabled={hasFormErrors}
+                >
+                  <ArrowBigRight />
+                </Button>
+              </div>
             </form>
           </Form>
         </CardContent>
