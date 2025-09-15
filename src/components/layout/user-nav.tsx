@@ -15,11 +15,11 @@ import Link from "next/link";
 
 import { UserRole } from "@/types/enums";
 
-interface UserNavProps {
+interface UserNavProps extends React.HTMLAttributes<HTMLDivElement> {
   user: {
-    name?: string | null;
-    email?: string | null;
-    image?: string | null;
+    name: string;
+    email: string;
+    avatar?: string | null;
     role?: UserRole;
   };
 }
@@ -30,14 +30,17 @@ function UserNav({ user }: UserNavProps) {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            {user.image ? (
+            {user.avatar ? (
               <AvatarImage 
-                src={user.image.startsWith('http') ? user.image : `/api/avatars/${user.image}`} 
-                alt={user.name || "User"} 
+                src={`/api/auth/avatar/${user.avatar}`}
+                alt={user.name || "User"}
+                className="object-cover"
               />
             ) : (
-              <AvatarFallback>
-                {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+              <AvatarFallback className="bg-primary/10">
+                <span className="text-sm font-medium text-primary">
+                  {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                </span>
               </AvatarFallback>
             )}
           </Avatar>

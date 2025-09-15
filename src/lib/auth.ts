@@ -93,7 +93,7 @@ export const authOptions: NextAuthOptions = {
             email: user.email,
             name: `${user.firstName} ${user.lastName}`.trim(),
             role: user.role || "USER",
-            image: user.avatar,
+            avatar: user.avatar,
           };
         } catch (error) {
           const errorMessage =
@@ -120,11 +120,14 @@ export const authOptions: NextAuthOptions = {
     },
     session({ session, token }) {
       if (token) {
-        session.user.id = token.id;
-        session.user.name = token.name;
-        session.user.email = token.email;
-        session.user.role = token.role;
-        session.user.image = token.image as string | null | undefined;
+        session.user = {
+          ...session.user,
+          id: token.id,
+          name: token.name,
+          email: token.email,
+          role: token.role,
+          avatar: token.avatar as string | null | undefined,
+        };
       }
       return session;
     },
@@ -133,6 +136,7 @@ export const authOptions: NextAuthOptions = {
       if (account && user) {
         token.role = user.role;
         token.id = user.id;
+        token.avatar = user.avatar; // Add avatar to token
       }
       return token;
     },

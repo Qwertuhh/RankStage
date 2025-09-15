@@ -8,7 +8,7 @@ import Logo from "@/components/logo";
 
 export async function Navbar() {
   const session = await getServerSession(authOptions);
-
+console.log(session);
   return (
     <div className="border-b">
       <div className="flex h-16 items-center px-4 container mx-auto">
@@ -20,7 +20,7 @@ export async function Navbar() {
             <UserNav user={{
               name: session.user.name ?? "",
               email: session.user.email ?? "",
-              image: session.user.image ?? null,
+              avatar: session.user.avatar ?? null,
               role: session.user.role
             }} />
           ) : (
