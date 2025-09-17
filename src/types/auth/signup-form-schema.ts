@@ -1,15 +1,17 @@
 import { z } from "zod";
+
 interface FormSchemaType {
     firstName: string;
     lastName: string;
     email: string;
-    avatar: File ;
+    avatar: File | null;
     bio: string;
     location: string;
     password: string;
     confirmPassword: string;
     acceptTerms: boolean;
 }
+
 const formSchema = z
   .object({
     firstName: z.string().min(2, {
@@ -21,9 +23,12 @@ const formSchema = z
     email: z.string().email({
       message: "Please enter a valid email address.",
     }),
-    avatar: z.file({
-      message: "Avatar is required.",
-    }),
+    avatar: z
+      .instanceof(File)
+      .nullable()
+      .refine((file) => file !== null, {
+        message: "Avatar is required.",
+      }),
     bio: z
       .string()
       .max(160, {
