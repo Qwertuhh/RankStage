@@ -135,14 +135,30 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
 
   // Update form error state when form state changes
   useEffect(() => {
-    const subscription = form.watch(() => {
-      // Check if any of the current step's fields have errors
-      const currentFields = formSteps[currentStep]?.fields || [];
-      const hasErrors = currentFields.some(
-        (field) => !!form.formState.errors[field]
-      );
-      setHasFormErrors(hasErrors);
+    type FormField = keyof z.infer<typeof formSchema>;
+    
+    const subscription = form.watch((value, { name }) => {
+      // Only validate if the changed field is in the current step
+      const currentFields = formSteps[currentStep]?.fields as FormField[] || [];
+      if (!name || currentFields.includes(name as FormField)) {
+        // Trigger validation for current step fields
+        form.trigger(currentFields).then(isValid => {
+          setHasFormErrors(!isValid);
+        });
+      }
     });
+
+    // Initial validation check when step changes
+    const validateStep = async () => {
+      const currentFields = formSteps[currentStep]?.fields as FormField[] || [];
+      if (currentFields.length > 0) {
+        const isValid = await form.trigger(currentFields);
+        setHasFormErrors(!isValid);
+      } else {
+        setHasFormErrors(false);
+      }
+    };
+    validateStep();
 
     return () => subscription.unsubscribe();
   }, [currentStep, form, formSteps]);
@@ -257,28 +273,29 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {formSteps[currentStep].component}
               <div className="flex justify-start gap-2">
-                <Button
+               {currentStep > 0 && <Button
                   type="button"
                   onClick={() => {
                     if (currentStep > 0) setCurrentStep(currentStep - 1);
                   }}
                 >
                   <ArrowBigLeft />
-                </Button>
+                </Button>}
+                {currentStep < formSteps.length - 1 && 
                 <Button
                   type="button"
                   onClick={async () => {
                     const fields = formSteps[currentStep]?.fields || [];
-                    const isValid = await form.trigger(fields);
+                    const isValid = await form.trigger(fields, { shouldFocus: true });
                     if (isValid) {
                       setCurrentStep(currentStep + 1);
                       setHasFormErrors(false);
                     }
                   }}
-                  disabled={hasFormErrors}
+                  disabled={hasFormErrors || form.formState.isSubmitting}
                 >
                   <ArrowBigRight />
-                </Button>
+                </Button>}
               </div>
             </form>
           </Form>

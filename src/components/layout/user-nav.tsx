@@ -31,12 +31,6 @@ function UserNav({ user }: UserNavProps) {
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
             {user.avatar ? (
-              // <AvatarImage 
-              //   src={`/api/auth/avatar/${user.avatar}`}
-              //   alt={user.name || "User"}
-              //   className="object-cover"
-              // />
-
               <UserAvatar preview={`/api/auth/avatar/${user.avatar}`} />
             ) : (
               <AvatarFallback className="bg-primary/10">
