@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -24,7 +25,7 @@ import {
   NameComponent,
   SubmitForm,
 } from "@/components/auth/form-components";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "../ui/button";
 import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
 
@@ -131,37 +132,33 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
     [form]
   );
   const [currentStep, setCurrentStep] = useState(0);
-  const [hasFormErrors, setHasFormErrors] = useState(false);
+  const [, setHasFormErrors] = useState(false);
+  const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
 
-  // Update form error state when form state changes
-  useEffect(() => {
-    type FormField = keyof z.infer<typeof formSchema>;
-    
-    const subscription = form.watch((value, { name }) => {
-      // Only validate if the changed field is in the current step
-      const currentFields = formSteps[currentStep]?.fields as FormField[] || [];
-      if (!name || currentFields.includes(name as FormField)) {
-        // Trigger validation for current step fields
-        form.trigger(currentFields).then(isValid => {
-          setHasFormErrors(!isValid);
-        });
-      }
-    });
+  // Validate current step when trying to proceed
+  const validateCurrentStep = async () => {
+    const currentFields = formSteps[currentStep]?.fields || [];
+    if (currentFields.length > 0) {
+      // Mark all fields in current step as touched when trying to proceed
+      const newTouchedFields = new Set([...touchedFields, ...currentFields]);
+      setTouchedFields(newTouchedFields);
+      
+      // Trigger validation
+      const isValid = await form.trigger(currentFields);
+      setHasFormErrors(!isValid);
+      return isValid;
+    }
+    return true;
+  };
 
-    // Initial validation check when step changes
-    const validateStep = async () => {
-      const currentFields = formSteps[currentStep]?.fields as FormField[] || [];
-      if (currentFields.length > 0) {
-        const isValid = await form.trigger(currentFields);
-        setHasFormErrors(!isValid);
-      } else {
-        setHasFormErrors(false);
-      }
-    };
-    validateStep();
-
-    return () => subscription.unsubscribe();
-  }, [currentStep, form, formSteps]);
+  // Handle next button click
+  const handleNext = async () => {
+    const isValid = await validateCurrentStep();
+    if (isValid) {
+      setCurrentStep(prev => Math.min(prev + 1, formSteps.length - 1));
+      setHasFormErrors(false);
+    }
+  };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const toastId = toast.loading("Creating your account...");
@@ -273,29 +270,30 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {formSteps[currentStep].component}
               <div className="flex justify-start gap-2">
-               {currentStep > 0 && <Button
-                  type="button"
-                  onClick={() => {
-                    if (currentStep > 0) setCurrentStep(currentStep - 1);
-                  }}
-                >
-                  <ArrowBigLeft />
-                </Button>}
-                {currentStep < formSteps.length - 1 && 
-                <Button
-                  type="button"
-                  onClick={async () => {
-                    const fields = formSteps[currentStep]?.fields || [];
-                    const isValid = await form.trigger(fields, { shouldFocus: true });
-                    if (isValid) {
-                      setCurrentStep(currentStep + 1);
-                      setHasFormErrors(false);
-                    }
-                  }}
-                  disabled={hasFormErrors || form.formState.isSubmitting}
-                >
-                  <ArrowBigRight />
-                </Button>}
+                {currentStep > 0 && (
+                  <Button
+                    type="button"
+                    onClick={() => setCurrentStep(prev => Math.max(prev - 1, 0))}
+                  >
+                    <ArrowBigLeft />
+                  </Button>
+                )}
+                {currentStep < formSteps.length - 1 ? (
+                  <Button
+                    type="button"
+                    onClick={handleNext}
+                    disabled={form.formState.isSubmitting}
+                  >
+                    <ArrowBigRight />
+                  </Button>
+                ) : (
+                  <Button 
+                    type="submit" 
+                    disabled={form.formState.isSubmitting}
+                  >
+                    {form.formState.isSubmitting ? 'Submitting...' : 'Submit'}
+                  </Button>
+                )}
               </div>
             </form>
           </Form>

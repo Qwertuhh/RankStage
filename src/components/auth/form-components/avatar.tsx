@@ -12,9 +12,7 @@ import { UseFormReturn } from "react-hook-form";
 import { formSchema } from "@/types/auth/signup-form-schema";
 import { z } from "zod";
 import { Upload, X } from "lucide-react";
-import Image from "next/image";
-import { useState, useRef, ChangeEvent } from "react";
-import { toast } from "sonner";
+import { useState, useRef} from "react";
 import UserAvatar from "@/components/layout/userAvatar";
 import { Avatar } from "@radix-ui/react-avatar";
 
@@ -23,30 +21,6 @@ type FormData = z.infer<typeof formSchema>;
 function NameComponent({ form }: { form: UseFormReturn<FormData> }) {
   const [preview, setPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleImageChange = (
-    e: ChangeEvent<HTMLInputElement>,
-    onChange: (file: File | null) => void
-  ) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
-    if (!file.type.match("image.*")) {
-      toast.error("Please select an image file (JPEG, PNG, etc.)");
-      return;
-    }
-
-    // Create preview URL
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-
-    // Update form field
-    onChange(file);
-  };
 
   const handleRemoveImage = (onChange: (file: null) => void) => {
     setPreview(null);
