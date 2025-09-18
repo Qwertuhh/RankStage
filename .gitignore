@@ -44,4 +44,5 @@ next-env.d.ts
 .vscode
 
 # Logs
-logs
+/logs
+*.log
