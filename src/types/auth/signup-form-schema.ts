@@ -46,6 +46,7 @@ const formSchema = z
     acceptTerms: z.boolean({
       error: "You must accept the terms and conditions.",
     }),
+    otp: z.boolean(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match.",

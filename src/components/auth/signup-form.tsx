@@ -28,6 +28,7 @@ import {
 import { useState, useMemo } from "react";
 import { Button } from "../ui/button";
 import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
+import OtpVerificationComponent from "./form-components/otp-verification";
 
 type FormStep = {
   id: string;
@@ -115,6 +116,12 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
         title: "Password",
         component: <PasswordComponent form={form} />,
         fields: ["password", "confirmPassword"],
+      },
+      {
+        id: "otp",
+        title: "OTP",
+        component: <OtpVerificationComponent form={form} />,
+        fields: ["otp"],
       },
       {
         id: "terms",
@@ -268,7 +275,11 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              {formSteps[currentStep].component}
+              {formSteps[currentStep].id === 'otp' ? (
+                <OtpVerificationComponent form={form} onNext={handleNext} />
+              ) : (
+                formSteps[currentStep].component
+              )}
               <div className="flex justify-start gap-2">
                 {currentStep > 0 && (
                   <Button
@@ -278,7 +289,7 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
                     <ArrowBigLeft />
                   </Button>
                 )}
-                {currentStep < formSteps.length - 1 ? (
+                {currentStep < formSteps.length - 1 &&
                   <Button
                     type="button"
                     onClick={handleNext}
@@ -286,14 +297,7 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
                   >
                     <ArrowBigRight />
                   </Button>
-                ) : (
-                  <Button 
-                    type="submit" 
-                    disabled={form.formState.isSubmitting}
-                  >
-                    {form.formState.isSubmitting ? 'Submitting...' : 'Submit'}
-                  </Button>
-                )}
+                }
               </div>
             </form>
           </Form>

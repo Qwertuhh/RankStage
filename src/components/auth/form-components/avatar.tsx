@@ -1,5 +1,4 @@
 import {
-  FormControl,
   FormField,
   FormItem,
   FormLabel,
@@ -9,11 +8,11 @@ import {
 import { UseFormReturn } from "react-hook-form";
 import { formSchema } from "@/types/auth/signup-form-schema";
 import { z } from "zod";
-import CropperComponent from "@/components/comp-554";
+import CropperComponent from "@/components/imageCropper";
 
 type FormData = z.infer<typeof formSchema>;
 
-function NameComponent({ form }: { form: UseFormReturn<FormData> }) {
+function AvatarComponent({ form }: { form: UseFormReturn<FormData> }) {
   return (
     <FormField
       control={form.control}
@@ -45,4 +44,4 @@ function NameComponent({ form }: { form: UseFormReturn<FormData> }) {
   );
 }
 
-export default NameComponent;
+export default AvatarComponent;
