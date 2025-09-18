@@ -25,7 +25,7 @@ import {
   NameComponent,
   SubmitForm,
 } from "@/components/auth/form-components";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { Button } from "../ui/button";
 import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
 import OtpVerificationComponent from "./form-components/otp-verification";
@@ -142,6 +142,35 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
   const [currentStep, setCurrentStep] = useState(0);
   const [, setHasFormErrors] = useState(false);
   const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
+
+  // Track the values at the time OTP was verified
+  const verifiedEmailRef = useRef<string | null>(null);
+  const verifiedPasswordRef = useRef<string | null>(null);
+
+  // When OTP flips to true, capture current email/password as the verified baseline
+  useEffect(() => {
+    const otp = form.watch("otp");
+    if (otp === true) {
+      verifiedEmailRef.current = form.getValues("email");
+      verifiedPasswordRef.current = form.getValues("password");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.watch("otp")]);
+
+  // If email or password changes after verification, require re-verification
+  const watchedEmail = form.watch("email");
+  const watchedPassword = form.watch("password");
+  useEffect(() => {
+    const otp = form.getValues("otp");
+    if (!otp) return;
+    const emailChanged =
+      verifiedEmailRef.current !== null && watchedEmail !== verifiedEmailRef.current;
+    const passwordChanged =
+      verifiedPasswordRef.current !== null && watchedPassword !== verifiedPasswordRef.current;
+    if (emailChanged || passwordChanged) {
+      form.setValue("otp", false, { shouldDirty: true, shouldValidate: true });
+    }
+  }, [watchedEmail, watchedPassword, form]);
 
   // Validate current step when trying to proceed
   const validateCurrentStep = async () => {
