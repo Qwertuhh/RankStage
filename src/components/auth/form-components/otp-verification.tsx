@@ -3,7 +3,6 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from "@/components/ui/form";
 import { UseFormReturn } from "react-hook-form";
 import { formSchema } from "@/types/auth/signup-form-schema";
@@ -23,14 +22,12 @@ function OtpVerificationComponent({ form, onNext }: { form: UseFormReturn<FormDa
           <FormLabel>OTP Verification</FormLabel>
           <InputOTPForm
             email={email}
+            name={form.watch("firstName") + " " + form.watch("lastName")}
             onVerifiedChange={(valid) => {
               form.setValue("otp", valid, { shouldDirty: true, shouldValidate: true });
             }}
             onSuccessNext={onNext}
           />
-          <FormDescription>
-            Send a code to your email and enter it to verify. Once verified, this step will be marked complete.
-          </FormDescription>
           <FormMessage />
         </FormItem>
       )}

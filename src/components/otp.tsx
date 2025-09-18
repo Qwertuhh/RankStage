@@ -30,6 +30,7 @@ const FormSchema = z.object({
 
 type InputOTPFormProps = {
   email: string;
+  name: string;
   // If provided, we will set ref.current to true/false after verification
   statusRef?: React.MutableRefObject<boolean | null>;
   // Optional callback when verification result is obtained
@@ -38,7 +39,7 @@ type InputOTPFormProps = {
   onSuccessNext?: () => void;
 };
 
-export function InputOTPForm({ email, statusRef, onVerifiedChange, onSuccessNext }: InputOTPFormProps) {
+export function InputOTPForm({ email, name, statusRef, onVerifiedChange, onSuccessNext }: InputOTPFormProps) {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -70,7 +71,7 @@ export function InputOTPForm({ email, statusRef, onVerifiedChange, onSuccessNext
       const res = await fetch("/api/auth/verify-email/generator", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, name }),
       });
       const data = await res.json();
       if (!res.ok || !data?.success) {
@@ -122,16 +123,11 @@ export function InputOTPForm({ email, statusRef, onVerifiedChange, onSuccessNext
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="w-2/3 space-y-6">
+      <div className="w-fit space-y-6">
         <div className="flex items-center gap-3">
           <Button type="button" variant="secondary" onClick={requestOtp} disabled={resending}>
             {resending ? "Sending..." : token ? "Resend Code" : "Send Code"}
           </Button>
-          {expiresAt ? (
-            <span className="text-sm text-muted-foreground">
-              Code expires in {Math.max(0, remaining)}s
-            </span>
-          ) : null}
         </div>
         <FormField
           control={form.control}
@@ -152,17 +148,17 @@ export function InputOTPForm({ email, statusRef, onVerifiedChange, onSuccessNext
                 </InputOTP>
               </FormControl>
               <FormDescription>
-                Please enter the one-time password sent to {email}.
+                Please enter the OTP sent to <b>{email}</b>.
               </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <Button type="submit" disabled={loading}>
+        <Button type="button" disabled={loading} onClick={form.handleSubmit(onSubmit)}>
           {loading ? "Verifying..." : "Verify"}
         </Button>
-      </form>
+      </div>
     </Form>
   );
 }

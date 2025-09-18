@@ -9,6 +9,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
     const email: string | undefined = body?.email;
+    const name: string | undefined = body?.name;
 
     if (!email) {
       return NextResponse.json(
@@ -54,7 +55,7 @@ export async function POST(req: NextRequest) {
     const enqueueRes = await fetch(`${origin}/api/mail/send-otp`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email, otp }),
+      body: JSON.stringify({ email, name, otp }),
       // Do not cache
       cache: "no-store",
     });

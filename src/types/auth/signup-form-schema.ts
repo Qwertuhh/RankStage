@@ -46,7 +46,10 @@ const formSchema = z
     acceptTerms: z.boolean({
       error: "You must accept the terms and conditions.",
     }),
-    otp: z.boolean(),
+    // Must be true before proceeding past OTP step
+    otp: z
+      .boolean()
+      .refine((v) => v === true, { message: "Please verify your OTP to continue." }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match.",

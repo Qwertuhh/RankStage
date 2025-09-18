@@ -76,6 +76,7 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
       password: "",
       confirmPassword: "",
       acceptTerms: false,
+      otp: false,
     },
   });
 
@@ -168,7 +169,11 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
   };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const toastId = toast.loading("Creating your account...");
+    // Use a constant toast ID so retries update the same toast instead of stacking
+    const toastId = "signup";
+    // Dismiss any prior toast with this ID before starting a new attempt
+    toast.dismiss(toastId);
+    toast.loading("Creating your account...", { id: toastId });
 
     try {
       // Upload avatar if present
@@ -234,9 +239,7 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
       }
 
       // Show success message and redirect
-      toast.success("Account created successfully! Redirecting to login...", {
-        id: toastId,
-      });
+      toast.success("Account created successfully! Redirecting to login...", { id: toastId });
 
       // Reset form
       form.reset();
@@ -252,8 +255,8 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
           ? error.message
           : "Failed to create account. Please try again.";
 
-      // Show error toast
-      toast.error(errorMessage);
+      // Update the loading toast to an error so it doesn't stay forever
+      toast.error(errorMessage, { id: toastId });
 
       // Re-enable form
       form.setError("root", {
@@ -293,7 +296,10 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
                   <Button
                     type="button"
                     onClick={handleNext}
-                    disabled={form.formState.isSubmitting}
+                    disabled={
+                      form.formState.isSubmitting ||
+                      (formSteps[currentStep].id === 'otp' && !form.watch('otp'))
+                    }
                   >
                     <ArrowBigRight />
                   </Button>
