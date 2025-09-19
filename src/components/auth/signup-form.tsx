@@ -299,7 +299,9 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Create an account</CardTitle>
+          <CardTitle className="text-2xl font-crimson-pro">
+            Create an account
+          </CardTitle>
           <CardDescription>
             Join us and start your journey today.
           </CardDescription>
@@ -307,7 +309,7 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              {formSteps[currentStep].id === 'otp' ? (
+              {formSteps[currentStep].id === "otp" ? (
                 <OtpVerificationComponent form={form} onNext={handleNext} />
               ) : (
                 formSteps[currentStep].component
@@ -316,23 +318,26 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
                 {currentStep > 0 && (
                   <Button
                     type="button"
-                    onClick={() => setCurrentStep(prev => Math.max(prev - 1, 0))}
+                    onClick={() =>
+                      setCurrentStep((prev) => Math.max(prev - 1, 0))
+                    }
                   >
                     <ArrowBigLeft />
                   </Button>
                 )}
-                {currentStep < formSteps.length - 1 &&
+                {currentStep < formSteps.length - 1 && (
                   <Button
                     type="button"
                     onClick={handleNext}
                     disabled={
                       form.formState.isSubmitting ||
-                      (formSteps[currentStep].id === 'otp' && !form.watch('otp'))
+                      (formSteps[currentStep].id === "otp" &&
+                        !form.watch("otp"))
                     }
                   >
                     <ArrowBigRight />
                   </Button>
-                }
+                )}
               </div>
             </form>
           </Form>

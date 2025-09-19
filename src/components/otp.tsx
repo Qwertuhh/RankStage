@@ -124,17 +124,11 @@ export function InputOTPForm({ email, name, statusRef, onVerifiedChange, onSucce
   return (
     <Form {...form}>
       <div className="w-fit space-y-6">
-        <div className="flex items-center gap-3">
-          <Button type="button" variant="secondary" onClick={requestOtp} disabled={resending}>
-            {resending ? "Sending..." : token ? "Resend Code" : "Send Code"}
-          </Button>
-        </div>
         <FormField
           control={form.control}
           name="pin"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>One-Time Password</FormLabel>
               <FormControl>
                 <InputOTP maxLength={6} {...field}>
                   <InputOTPGroup>
@@ -147,17 +141,31 @@ export function InputOTPForm({ email, name, statusRef, onVerifiedChange, onSucce
                   </InputOTPGroup>
                 </InputOTP>
               </FormControl>
-              <FormDescription>
+              <FormDescription className="w-full">
                 Please enter the OTP sent to <b>{email}</b>.
               </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
+        <div className="flex items-center gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={requestOtp}
+            disabled={resending}
+          >
+            {resending ? "Sending..." : token ? "Resend Code" : "Send Code"}
+          </Button>
 
-        <Button type="button" disabled={loading} onClick={form.handleSubmit(onSubmit)}>
+        <Button
+          type="button"
+          disabled={loading}
+          onClick={form.handleSubmit(onSubmit)}
+          >
           {loading ? "Verifying..." : "Verify"}
         </Button>
+          </div>
       </div>
     </Form>
   );

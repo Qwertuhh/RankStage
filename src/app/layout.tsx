@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Merriweather, Open_Sans } from "next/font/google";
 import "./globals.css";
 import { NextAuthProvider } from "@/providers/next-auth";
 import { ThemeProvider } from "@/providers/theme-provider";
@@ -7,7 +7,8 @@ import ThemeToggle from "@/components/theme-toggle";
 import { Toaster } from "sonner";
 import { Navbar } from "@/components/layout/navbar";
 
-const inter = Inter({ subsets: ["latin"] });
+const crimsonPro = Merriweather({ weight: ["300", "400", "500", "600"], variable: "--font-crimson-pro" });
+const openSans = Open_Sans({ weight: ["300", "400", "500", "600"], variable: "--font-open-sans" });
 
 export const metadata: Metadata = {
   icons: "/rankstage-logo.svg",
@@ -23,7 +24,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={`${crimsonPro.variable} ${openSans.variable} ${openSans.className}`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
