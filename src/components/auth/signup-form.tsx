@@ -5,13 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Form } from "@/components/ui/form";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { formSchema } from "@/types/auth/signup-form-schema";
@@ -29,6 +23,14 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import { Button } from "../ui/button";
 import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
 import OtpVerificationComponent from "./form-components/otp-verification";
+import {
+  Tabs,
+  TabsPanel,
+  TabsPanels,
+  TabsList,
+  TabsTab,
+} from "@/components/animate-ui/components/base/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 type FormStep = {
   id: string;
@@ -102,7 +104,7 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
       },
       {
         id: "bio",
-        title: "Bio",
+        title: "Biography",
         component: <BioComponent form={form} />,
         fields: ["bio"],
       },
@@ -147,7 +149,7 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
   const verifiedEmailRef = useRef<string | null>(null);
   const verifiedPasswordRef = useRef<string | null>(null);
 
-  // When OTP flips to true, capture current email/password as the verified baseline
+  //* When OTP flips to true, capture current email/password as the verified baseline
   useEffect(() => {
     const otp = form.watch("otp");
     if (otp === true) {
@@ -157,16 +159,18 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.watch("otp")]);
 
-  // If email or password changes after verification, require re-verification
+  //* If email or password changes after verification, require re-verification
   const watchedEmail = form.watch("email");
   const watchedPassword = form.watch("password");
   useEffect(() => {
     const otp = form.getValues("otp");
     if (!otp) return;
     const emailChanged =
-      verifiedEmailRef.current !== null && watchedEmail !== verifiedEmailRef.current;
+      verifiedEmailRef.current !== null &&
+      watchedEmail !== verifiedEmailRef.current;
     const passwordChanged =
-      verifiedPasswordRef.current !== null && watchedPassword !== verifiedPasswordRef.current;
+      verifiedPasswordRef.current !== null &&
+      watchedPassword !== verifiedPasswordRef.current;
     if (emailChanged || passwordChanged) {
       form.setValue("otp", false, { shouldDirty: true, shouldValidate: true });
     }
@@ -179,7 +183,7 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
       // Mark all fields in current step as touched when trying to proceed
       const newTouchedFields = new Set([...touchedFields, ...currentFields]);
       setTouchedFields(newTouchedFields);
-      
+
       // Trigger validation
       const isValid = await form.trigger(currentFields);
       setHasFormErrors(!isValid);
@@ -192,7 +196,7 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
   const handleNext = async () => {
     const isValid = await validateCurrentStep();
     if (isValid) {
-      setCurrentStep(prev => Math.min(prev + 1, formSteps.length - 1));
+      setCurrentStep((prev) => Math.min(prev + 1, formSteps.length - 1));
       setHasFormErrors(false);
     }
   };
@@ -268,7 +272,9 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
       }
 
       // Show success message and redirect
-      toast.success("Account created successfully! Redirecting to login...", { id: toastId });
+      toast.success("Account created successfully! Redirecting to login...", {
+        id: toastId,
+      });
 
       // Reset form
       form.reset();
@@ -297,52 +303,76 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-crimson-pro">
-            Create an account
-          </CardTitle>
-          <CardDescription>
-            Join us and start your journey today.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              {formSteps[currentStep].id === "otp" ? (
-                <OtpVerificationComponent form={form} onNext={handleNext} />
-              ) : (
-                formSteps[currentStep].component
-              )}
-              <div className="flex justify-start gap-2">
-                {currentStep > 0 && (
-                  <Button
-                    type="button"
-                    onClick={() =>
-                      setCurrentStep((prev) => Math.max(prev - 1, 0))
-                    }
-                  >
-                    <ArrowBigLeft />
-                  </Button>
-                )}
-                {currentStep < formSteps.length - 1 && (
-                  <Button
-                    type="button"
-                    onClick={handleNext}
-                    disabled={
-                      form.formState.isSubmitting ||
-                      (formSteps[currentStep].id === "otp" &&
-                        !form.watch("otp"))
-                    }
-                  >
-                    <ArrowBigRight />
-                  </Button>
-                )}
-              </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+      <Tabs
+        value={formSteps[currentStep]?.id}
+        onValueChange={(val: string) => {
+          const idx = formSteps.findIndex((s) => s.id === val);
+          if (idx !== -1) setCurrentStep(idx);
+        }}
+      >
+        <ScrollArea className="w-full scroll-smooth [&_[data-slot=scroll-area-scrollbar][data-orientation=horizontal]_[data-slot=scroll-area-thumb]]:hidden">
+          <div className="min-w-max pr-2">
+            <TabsList className="inline-flex whitespace-nowrap gap-2">
+              {formSteps.map((step) => (
+                <TabsTab key={step.id} value={step.id} className="">
+                  {step.title}
+                </TabsTab>
+              ))}
+            </TabsList>
+          </div>
+        </ScrollArea>
+        <Card>
+          <CardHeader className="text-center"></CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-6"
+              >
+                <TabsPanels>
+                  {formSteps.map((step) => (
+                    <TabsPanel key={step.id} value={step.id}>
+                      {step.id === "otp" ? (
+                        <OtpVerificationComponent
+                          form={form}
+                          onNext={handleNext}
+                        />
+                      ) : (
+                        step.component
+                      )}
+                    </TabsPanel>
+                  ))}
+                </TabsPanels>
+                <div className="flex justify-start gap-2">
+                  {currentStep > 0 && (
+                    <Button
+                      type="button"
+                      onClick={() =>
+                        setCurrentStep((prev) => Math.max(prev - 1, 0))
+                      }
+                    >
+                      <ArrowBigLeft />
+                    </Button>
+                  )}
+                  {currentStep < formSteps.length - 1 && (
+                    <Button
+                      type="button"
+                      onClick={handleNext}
+                      disabled={
+                        form.formState.isSubmitting ||
+                        (formSteps[currentStep].id === "otp" &&
+                          !form.watch("otp"))
+                      }
+                    >
+                      <ArrowBigRight />
+                    </Button>
+                  )}
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      </Tabs>
     </div>
   );
 }
