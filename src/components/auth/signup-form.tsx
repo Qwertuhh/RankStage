@@ -314,7 +314,7 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
           <div className="min-w-max pr-2">
             <TabsList className="inline-flex whitespace-nowrap gap-2">
               {formSteps.map((step) => (
-                <TabsTab key={step.id} value={step.id} className="">
+                <TabsTab key={step.id} value={step.id} className="px-12">
                   {step.title}
                 </TabsTab>
               ))}
