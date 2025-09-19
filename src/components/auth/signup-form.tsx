@@ -145,6 +145,51 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
   const [, setHasFormErrors] = useState(false);
   const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
 
+  // Horizontal scroll arrows state for TabsList ScrollArea
+  const tabsScrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const getViewport = () =>
+    (tabsScrollContainerRef.current?.querySelector(
+      '[data-slot="scroll-area-viewport"]'
+    ) as HTMLElement | null) ?? null;
+
+  const updateScrollButtons = () => {
+    const vp = getViewport();
+    if (!vp) return;
+    const atStart = vp.scrollLeft <= 0;
+    const atEnd = vp.scrollLeft + vp.clientWidth >= vp.scrollWidth - 1;
+    setCanScrollLeft(!atStart);
+    setCanScrollRight(!atEnd);
+  };
+
+  const scrollByAmount = (delta: number) => {
+    const vp = getViewport();
+    if (!vp) return;
+    vp.scrollBy({ left: delta, behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    const vp = getViewport();
+    if (!vp) return;
+    updateScrollButtons();
+    const onScroll = () => updateScrollButtons();
+    vp.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    return () => {
+      vp.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Recompute when current step changes (content width may change)
+  useEffect(() => {
+    updateScrollButtons();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep, formSteps.length]);
+
   // Track the values at the time OTP was verified
   const verifiedEmailRef = useRef<string | null>(null);
   const verifiedPasswordRef = useRef<string | null>(null);
@@ -302,7 +347,7 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
   }
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <div className={cn('flex flex-col gap-6', className)} {...props}>
       <Tabs
         value={formSteps[currentStep]?.id}
         onValueChange={(val: string) => {
@@ -310,17 +355,39 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
           if (idx !== -1) setCurrentStep(idx);
         }}
       >
-        <ScrollArea className="w-full scroll-smooth [&_[data-slot=scroll-area-scrollbar][data-orientation=horizontal]_[data-slot=scroll-area-thumb]]:hidden">
-          <div className="min-w-max pr-2">
-            <TabsList className="inline-flex whitespace-nowrap gap-2">
-              {formSteps.map((step) => (
-                <TabsTab key={step.id} value={step.id} className="px-12">
-                  {step.title}
-                </TabsTab>
-              ))}
-            </TabsList>
-          </div>
-        </ScrollArea>
+        <div ref={tabsScrollContainerRef} className="relative">
+          <ScrollArea className="w-full scroll-smooth [&_[data-slot=scroll-area-scrollbar][data-orientation=horizontal]_[data-slot=scroll-area-thumb]]:hidden">
+            <div className="min-w-max pr-2">
+              <TabsList className="inline-flex whitespace-nowrap gap-2">
+                {formSteps.map((step) => (
+                  <TabsTab key={step.id} value={step.id} className="px-12">
+                    {step.title}
+                  </TabsTab>
+                ))}
+              </TabsList>
+            </div>
+          </ScrollArea>
+          {canScrollLeft && (
+            <button
+              type="button"
+              aria-label="Scroll left"
+              onClick={() => scrollByAmount(-200)}
+              className="absolute left-1 top-1/2 -translate-y-1/2 z-10 rounded-full border bg-background/80 p-1 shadow hover:bg-accent"
+            >
+              <ArrowBigLeft className="h-4 w-4" />
+            </button>
+          )}
+          {canScrollRight && (
+            <button
+              type="button"
+              aria-label="Scroll right"
+              onClick={() => scrollByAmount(200)}
+              className="absolute right-1 top-1/2 -translate-y-1/2 z-10 rounded-full border bg-background/80 p-1 shadow hover:bg-accent"
+            >
+              <ArrowBigRight className="h-4 w-4" />
+            </button>
+          )}
+        </div>
         <Card>
           <CardHeader className="text-center"></CardHeader>
           <CardContent>
