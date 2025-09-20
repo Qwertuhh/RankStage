@@ -21,7 +21,7 @@ import {
 } from "@/components/auth/form-components";
 import { useState, useMemo, useRef, useEffect } from "react";
 import { Button } from "../ui/button";
-import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
+import { ArrowBigLeft, ArrowBigRight, MoveRight } from "lucide-react";
 import OtpVerificationComponent from "./form-components/otp-verification";
 import {
   Tabs,
@@ -141,26 +141,34 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
     ],
     [form]
   );
+
   const [currentStep, setCurrentStep] = useState(0);
+  // Scroll the active tab into view when step changes
+  useEffect(() => {
+    const el = document.getElementById(formSteps[currentStep].id);
+    el?.scrollIntoView({
+      behavior: "smooth",
+      inline: "start",
+      block: "nearest",
+    });
+  }, [currentStep, formSteps]);
+
   const [, setHasFormErrors] = useState(false);
   const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
 
-  // Horizontal scroll arrows state for TabsList ScrollArea
+  // Minimal scrolling support for the right scroll button in the TabsList ScrollArea
   const tabsScrollContainerRef = useRef<HTMLDivElement | null>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
   const getViewport = () =>
     (tabsScrollContainerRef.current?.querySelector(
-      '[data-slot="scroll-area-viewport"]'
+      '[data-slot="scroll-area-viewport"], [data-radix-scroll-area-viewport]'
     ) as HTMLElement | null) ?? null;
 
   const updateScrollButtons = () => {
     const vp = getViewport();
     if (!vp) return;
-    const atStart = vp.scrollLeft <= 0;
     const atEnd = vp.scrollLeft + vp.clientWidth >= vp.scrollWidth - 1;
-    setCanScrollLeft(!atStart);
     setCanScrollRight(!atEnd);
   };
 
@@ -184,9 +192,12 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Recompute when current step changes (content width may change)
+  // Recompute scroll button visibility when step changes or steps array changes
   useEffect(() => {
-    updateScrollButtons();
+    // defer to ensure layout has updated
+    requestAnimationFrame(() => {
+      updateScrollButtons();
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep, formSteps.length]);
 
@@ -241,7 +252,8 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
   const handleNext = async () => {
     const isValid = await validateCurrentStep();
     if (isValid) {
-      setCurrentStep((prev) => Math.min(prev + 1, formSteps.length - 1));
+      const nextIdx = Math.min(currentStep + 1, formSteps.length - 1);
+      setCurrentStep(nextIdx);
       setHasFormErrors(false);
     }
   };
@@ -347,7 +359,7 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
   }
 
   return (
-    <div className={cn('flex flex-col gap-6', className)} {...props}>
+    <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Tabs
         value={formSteps[currentStep]?.id}
         onValueChange={(val: string) => {
@@ -357,36 +369,32 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
       >
         <div ref={tabsScrollContainerRef} className="relative">
           <ScrollArea className="w-full scroll-smooth [&_[data-slot=scroll-area-scrollbar][data-orientation=horizontal]_[data-slot=scroll-area-thumb]]:hidden">
-            <div className="min-w-max pr-2">
-              <TabsList className="inline-flex whitespace-nowrap gap-2">
+            <div className="min-w-max pr-10 sm:pr-12">
+              {/* Added 47px to account for the next button */}
+              <TabsList
+                className="inline-flex whitespace-nowrap gap-2 px-2 md:px-3 lg:px-4 pr-[calc(var(--signup-form-width)-var(--signup-form-tab-width)-47px)]"
+              >
                 {formSteps.map((step) => (
-                  <TabsTab key={step.id} value={step.id} className="px-12">
+                  <TabsTab
+                    id={step.id}
+                    key={step.id}
+                    value={step.id}
+                    className="w-[var(--signup-form-tab-width)]"
+                  >
                     {step.title}
                   </TabsTab>
                 ))}
               </TabsList>
             </div>
           </ScrollArea>
-          {canScrollLeft && (
-            <button
-              type="button"
-              aria-label="Scroll left"
-              onClick={() => scrollByAmount(-200)}
-              className="absolute left-1 top-1/2 -translate-y-1/2 z-10 rounded-full border bg-background/80 p-1 shadow hover:bg-accent"
-            >
-              <ArrowBigLeft className="h-4 w-4" />
-            </button>
-          )}
-          {canScrollRight && (
-            <button
-              type="button"
-              aria-label="Scroll right"
-              onClick={() => scrollByAmount(200)}
-              className="absolute right-1 top-1/2 -translate-y-1/2 z-10 rounded-full border bg-background/80 p-1 shadow hover:bg-accent"
-            >
-              <ArrowBigRight className="h-4 w-4" />
-            </button>
-          )}
+          <button
+            type="button"
+            aria-label="Scroll right"
+            onClick={() => scrollByAmount(200)}
+            className="absolute right-0 h-full top-1/2 -translate-y-1/2 z-10 bg-accent p-1"
+          >
+            {canScrollRight && <MoveRight className="h-4 w-4" />}
+          </button>
         </div>
         <Card>
           <CardHeader className="text-center"></CardHeader>
