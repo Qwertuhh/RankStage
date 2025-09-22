@@ -5,7 +5,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Form } from "@/components/ui/form";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardDescription,
+} from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { formSchema } from "@/types/auth/signup-form-schema";
@@ -18,10 +23,11 @@ import {
   BioComponent,
   NameComponent,
   SubmitForm,
+  DateOfBirthComponent,
 } from "@/components/auth/form-components";
 import { useState, useMemo, useRef, useEffect } from "react";
 import { Button } from "../ui/button";
-import { ArrowBigLeft, ArrowBigRight, MoveRight } from "lucide-react";
+import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
 import OtpVerificationComponent from "./form-components/otp-verification";
 import type { OtpController } from "@/hooks/use-otp-verification";
 import {
@@ -32,7 +38,8 @@ import {
   TabsTab,
 } from "@/components/animate-ui/components/base/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
+import { MoveRight } from "@/components/animate-ui/icons/move-right";
+import { AnimateIcon } from "@/components/animate-ui/icons/icon";
 
 type FormStep = {
   id: string;
@@ -74,9 +81,10 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
       firstName: "",
       lastName: "",
       email: "",
-      avatar: undefined,
+      avatar: null,
       bio: "",
       location: "",
+      dateOfBirth: new Date("2000-01-01"),
       password: "",
       confirmPassword: "",
       acceptTerms: false,
@@ -104,6 +112,7 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
         component: <AvatarComponent form={form} />,
         fields: ["avatar"],
       },
+
       {
         id: "bio",
         title: "Biography",
@@ -115,6 +124,12 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
         title: "Location",
         component: <LocationComponent form={form} />,
         fields: ["location"],
+      },
+      {
+        id: "dob",
+        title: "Date of Birth",
+        component: <DateOfBirthComponent form={form} />,
+        fields: ["dateOfBirth"],
       },
       {
         id: "password",
@@ -145,6 +160,24 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
   );
 
   const [currentStep, setCurrentStep] = useState(0);
+  // Human-friendly descriptions for each step
+  const stepDescriptions: Record<string, string> = useMemo(
+    () => ({
+      name: "Tell us your name so we know how to address you.",
+      email: "Use a valid email. We’ll send a verification code here.",
+      avatar: "Optional. Upload a profile picture to personalize your account.",
+      bio: "A short bio helps others learn more about you.",
+      location:
+        "Share your city or region. This can help with personalization.",
+      dob: "Select your date of birth. You can’t pick a future date.",
+      password:
+        "Create a strong password and confirm it to keep your account secure.",
+      otp: "Enter the 6-digit code we sent to your email to verify your account.",
+      terms: "Please review and accept our terms to continue.",
+      submit: "All set! Review your information and create your account.",
+    }),
+    []
+  );
   // Furthest step the user is allowed to jump to via Tabs
   const [jumpingIndex, setJumpingIndex] = useState(0);
   // Scroll the active tab into view when step changes
@@ -304,6 +337,7 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
         firstName: values.firstName.trim(),
         lastName: values.lastName.trim(),
         email: values.email.toLowerCase().trim(),
+        dateOfBirth: values.dateOfBirth.toISOString(),
         password: values.password,
         confirmPassword: values.confirmPassword,
         bio: values.bio?.trim() || "",
@@ -394,7 +428,7 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
 
           // Prevent moving beyond jumpingIndex
           refocusCurrent();
-          toast.warning('Please complete previous steps before continuing.');
+          toast.warning("Please complete previous steps before continuing.");
         }}
       >
         <div ref={tabsScrollContainerRef} className="relative">
@@ -422,7 +456,9 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
                           formSteps[currentStep]?.id
                         );
                         el?.focus();
-                        toast.warning('Please complete previous steps before continuing.');
+                        toast.warning(
+                          "Please complete previous steps before continuing."
+                        );
                       }
                     }}
                   >
@@ -438,12 +474,20 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
             onClick={() => scrollByAmount(200)}
             className="absolute right-0 h-full top-1/2 -translate-y-1/2 z-10 bg-accent p-1"
           >
-            {canScrollRight && <MoveRight className="h-4 w-4" />}
+            {canScrollRight && (
+              <AnimateIcon animateOnHover>
+                <MoveRight />
+              </AnimateIcon>
+            )}
+            {/* {canScrollRight && <MoveRight className="h-4 w-4" />} */}
           </button>
         </div>
         <Card>
           <CardHeader className="text-center font-crimson-pro font-semibold text-xl">
             {formSteps[currentStep]?.title}
+            <CardDescription className="mt-1 text-sm">
+              {stepDescriptions[formSteps[currentStep]?.id ?? ""]}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -479,8 +523,8 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
                     </Button>
                   )}
 
-                  {currentStep < formSteps.length - 1 && (
-                    formSteps[currentStep].id === "otp" ? (
+                  {currentStep < formSteps.length - 1 &&
+                    (formSteps[currentStep].id === "otp" ? (
                       !form.watch("otp") ? (
                         <Button
                           type="button"
@@ -506,8 +550,7 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
                       >
                         <ArrowBigRight />
                       </Button>
-                    )
-                  )}
+                    ))}
                 </div>
               </form>
             </Form>

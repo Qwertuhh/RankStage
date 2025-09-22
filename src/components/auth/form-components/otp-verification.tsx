@@ -45,7 +45,6 @@ function OtpVerificationComponent({
       name="otp"
       render={() => (
         <FormItem>
-          <FormLabel>OTP Verification</FormLabel>
           <InputOTPForm
             email={email}
             name={name}

@@ -7,6 +7,7 @@ interface FormSchemaType {
     avatar: File | null;
     bio: string;
     location: string;
+    dateOfBirth: Date;
     password: string;
     confirmPassword: string;
     acceptTerms: boolean;
@@ -39,6 +40,9 @@ const formSchema = z
       .max(30, {
         message: "Location cannot be longer than 30 characters.",
       }),
+    dateOfBirth: z
+      .date()
+      .max(new Date(), { message: "Date of birth cannot be in the future." }),
     password: z.string().min(6, {
       message: "Password must be at least 6 characters.",
     }),

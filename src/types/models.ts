@@ -12,10 +12,10 @@ export interface BaseDocument extends Document {
 // User Types
 export interface IUser extends BaseDocument {
   email: string;
-  name: string;
   password: string;
   firstName: string;
   lastName: string;
+  dateOfBirth: Date;
   role: UserRole;
   avatar?: Types.ObjectId;
   bio: string;

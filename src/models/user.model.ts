@@ -16,11 +16,6 @@ const userSchema = new mongoose.Schema<IUser>(
         "Please provide a valid email address",
       ],
     },
-    name: {
-      type: String,
-      required: [true, "Name is required"],
-      trim: true,
-    },
     firstName: {
       type: String,
       required: [true, "First name is required"],
@@ -30,6 +25,10 @@ const userSchema = new mongoose.Schema<IUser>(
       type: String,
       required: [true, "Last name is required"],
       trim: true,
+    },
+    dateOfBirth: {
+      type: Date,
+      required: [true, "Date of birth is required"],
     },
     password: {
       type: String,

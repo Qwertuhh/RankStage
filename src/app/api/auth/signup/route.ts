@@ -17,6 +17,7 @@ const signupSchema = z.object({
   confirmPassword: z.string(),
   firstName: z.string().min(2, "First name must be at least 2 characters"),
   lastName: z.string().min(2, "Last name must be at least 2 characters"),
+  dateOfBirth: z.coerce.date().max(new Date(), "Date of birth cannot be in the future"),
   bio: z.string().optional(),
   location: z.string().optional(),
   avatar: z.string().optional(),
@@ -44,7 +45,7 @@ async function POST(req: Request) {
       );
     }
 
-    const { email, password, firstName, lastName, bio, location, avatar } = validation.data;
+    const { email, password, firstName, lastName, dateOfBirth, bio, location, avatar } = validation.data;
 
     // Define the type for the user document with password
     interface UserWithPassword {
@@ -107,10 +108,10 @@ async function POST(req: Request) {
       password, // Will be hashed by pre-save hook
       firstName,
       lastName,
-      name: `${firstName} ${lastName}`.trim(),
       bio: bio || "",
       location: location || "",
       avatar: avatar || "",
+      dateOfBirth,
       isActive: true,
     });
 

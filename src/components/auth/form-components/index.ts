@@ -6,6 +6,7 @@ import EmailComponent from "@/components/auth/form-components/email";
 import TermsComponent from "@/components/auth/form-components/terms";
 import AvatarComponent from "@/components/auth/form-components/avatar";
 import SubmitForm from "@/components/auth/form-components/submit-form";
+import DateOfBirthComponent from "@/components/auth/form-components/date-of-birth";
 
 export {
   NameComponent,
@@ -16,4 +17,5 @@ export {
   TermsComponent,
   AvatarComponent,
   SubmitForm,
+  DateOfBirthComponent,
 };

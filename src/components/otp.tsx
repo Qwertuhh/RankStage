@@ -13,7 +13,6 @@ import {
   FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import {
@@ -41,7 +40,7 @@ type InputOTPFormProps = {
   controller?: import("@/hooks/use-otp-verification").OtpController;
 };
 
-export function InputOTPForm({ email, name, statusRef, onVerifiedChange, onSuccessNext, controller }: InputOTPFormProps) {
+export function InputOTPForm({ email, name, controller }: InputOTPFormProps) {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -49,7 +48,6 @@ export function InputOTPForm({ email, name, statusRef, onVerifiedChange, onSucce
     },
   });
 
-  const [loading, setLoading] = React.useState(false);
   const [resending, setResending] = React.useState(false);
   const [token, setToken] = React.useState<string | null>(null);
   const [expiresAt, setExpiresAt] = React.useState<number | null>(null);
@@ -95,45 +93,6 @@ export function InputOTPForm({ email, name, statusRef, onVerifiedChange, onSucce
     }
   }
 
-  async function onSubmit(data: z.infer<typeof FormSchema>) {
-    if (controller) {
-      // external controller handles verification
-      const ok = await controller.verify();
-      if (statusRef) statusRef.current = ok;
-      onVerifiedChange?.(ok);
-      if (ok) onSuccessNext?.();
-      return;
-    }
-    if (!token) {
-      toast.warning("Please request a code first.");
-      return;
-    }
-    setLoading(true);
-    try {
-      const res = await fetch("/api/auth/verify-email/verifier", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email, otp: data.pin, token }),
-      });
-      const json = await res.json();
-      const valid = Boolean(json?.valid);
-      if (statusRef) statusRef.current = valid;
-      onVerifiedChange?.(valid);
-      if (valid) {
-        toast.success("Email verified!");
-        onSuccessNext?.();
-      } else {
-        toast.error("Invalid or expired code. Try again or resend.");
-      }
-    } catch (err: unknown) {
-      if (statusRef) statusRef.current = false;
-      onVerifiedChange?.(false);
-      const message = err instanceof Error ? err.message : typeof err === 'string' ? err : 'Verification failed';
-      toast.error(message);
-    } finally {
-      setLoading(false);
-    }
-  }
 
   return (
     <Form {...form}>
@@ -163,27 +122,32 @@ export function InputOTPForm({ email, name, statusRef, onVerifiedChange, onSucce
                   </InputOTPGroup>
                 </InputOTP>
               </FormControl>
-              <FormDescription className="w-full">
-                Please enter the OTP sent to <b>{email}</b>.
-              </FormDescription>
               <FormMessage />
+              <FormDescription>
+                {controller ? controller.token
+                  ? <>Please enter the OTP sent to <strong>{email}</strong>.</>
+                  : "Please request a code first."
+                  : "Please request a code first."}
+              </FormDescription>
             </FormItem>
           )}
         />
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1 text-muted-foreground">
           <Button
             type="button"
-            variant="outline"
+            variant="link"
+            className="text-muted-foreground px-0 mx-0 font-bold text-sm"
             onClick={requestOtp}
             disabled={controller ? controller.resending : resending}
           >
             {(controller ? controller.resending : resending)
               ? "Sending..."
               : (controller ? controller.token : token)
-                ? "Resend Code"
-                : "Send Code"}
+              ? "Resend"
+              : "Send"}
           </Button>
-          </div>
+        code to your email.
+        </div>
       </div>
     </Form>
   );
