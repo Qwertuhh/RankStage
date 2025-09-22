@@ -20,7 +20,6 @@ function BioComponent({ form }: { form: UseFormReturn<FormData> }) {
       name="email"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Email</FormLabel>
           <FormControl>
             <Input placeholder="john@example.com" {...field} />
           </FormControl>

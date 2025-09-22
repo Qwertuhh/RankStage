@@ -31,6 +31,7 @@ import {
   TabsTab,
 } from "@/components/animate-ui/components/base/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 
 type FormStep = {
   id: string;
@@ -143,6 +144,8 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
   );
 
   const [currentStep, setCurrentStep] = useState(0);
+  // Furthest step the user is allowed to jump to via Tabs
+  const [jumpingIndex, setJumpingIndex] = useState(0);
   // Scroll the active tab into view when step changes
   useEffect(() => {
     const el = document.getElementById(formSteps[currentStep].id);
@@ -153,7 +156,6 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
     });
   }, [currentStep, formSteps]);
 
-  const [, setHasFormErrors] = useState(false);
   const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
 
   // Minimal scrolling support for the right scroll button in the TabsList ScrollArea
@@ -232,6 +234,17 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
     }
   }, [watchedEmail, watchedPassword, form]);
 
+  // When OTP becomes invalid or changes, restrict jumping to at most the OTP step
+  useEffect(() => {
+    const otp = form.getValues("otp");
+    const otpIdx = formSteps.findIndex((s) => s.id === "otp");
+    if (otp === false) {
+      setJumpingIndex((prev) => Math.min(prev, otpIdx === -1 ? prev : otpIdx));
+      setCurrentStep((prev) => Math.min(prev, otpIdx === -1 ? prev : otpIdx));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchedEmail, watchedPassword]);
+
   // Validate current step when trying to proceed
   const validateCurrentStep = async () => {
     const currentFields = formSteps[currentStep]?.fields || [];
@@ -242,7 +255,6 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
 
       // Trigger validation
       const isValid = await form.trigger(currentFields);
-      setHasFormErrors(!isValid);
       return isValid;
     }
     return true;
@@ -254,7 +266,7 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
     if (isValid) {
       const nextIdx = Math.min(currentStep + 1, formSteps.length - 1);
       setCurrentStep(nextIdx);
-      setHasFormErrors(false);
+      setJumpingIndex((prev) => Math.max(prev, nextIdx));
     }
   };
 
@@ -364,22 +376,52 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
         value={formSteps[currentStep]?.id}
         onValueChange={(val: string) => {
           const idx = formSteps.findIndex((s) => s.id === val);
-          if (idx !== -1) setCurrentStep(idx);
+          if (idx === -1 || idx === currentStep) return;
+
+          const refocusCurrent = () => {
+            const el = document.getElementById(formSteps[currentStep]?.id);
+            el?.focus();
+          };
+
+          // Allow navigating to any step at or below jumpingIndex without validation
+          if (idx <= jumpingIndex) {
+            setCurrentStep(idx);
+            return;
+          }
+
+          // Prevent moving beyond jumpingIndex
+          refocusCurrent();
+          toast.warning('Please complete previous steps before continuing.');
         }}
       >
         <div ref={tabsScrollContainerRef} className="relative">
           <ScrollArea className="w-full scroll-smooth [&_[data-slot=scroll-area-scrollbar][data-orientation=horizontal]_[data-slot=scroll-area-thumb]]:hidden">
             <div className="min-w-max pr-10 sm:pr-12">
               {/* Added 47px to account for the next button */}
-              <TabsList
-                className="inline-flex whitespace-nowrap gap-2 px-2 md:px-3 lg:px-4 pr-[calc(var(--signup-form-width)-var(--signup-form-tab-width)-47px)]"
-              >
-                {formSteps.map((step) => (
+              <TabsList className="inline-flex whitespace-nowrap gap-2 px-2 pr-[calc(var(--signup-form-width)-var(--signup-form-tab-width)-47px)]">
+                {formSteps.map((step, idx) => (
                   <TabsTab
                     id={step.id}
                     key={step.id}
                     value={step.id}
-                    className="w-[var(--signup-form-tab-width)]"
+                    className={cn(
+                      "w-[var(--signup-form-tab-width)] cursor-pointer",
+                      idx > jumpingIndex && "opacity-50 cursor-not-allowed"
+                    )}
+                    aria-disabled={idx > jumpingIndex}
+                    tabIndex={idx > jumpingIndex ? -1 : 0}
+                    onMouseDown={(e) => {
+                      const disallowed = idx > jumpingIndex;
+                      if (disallowed) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const el = document.getElementById(
+                          formSteps[currentStep]?.id
+                        );
+                        el?.focus();
+                        toast.warning('Please complete previous steps before continuing.');
+                      }
+                    }}
                   >
                     {step.title}
                   </TabsTab>
@@ -397,7 +439,9 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
           </button>
         </div>
         <Card>
-          <CardHeader className="text-center"></CardHeader>
+          <CardHeader className="text-center font-crimson-pro font-semibold text-xl">
+            {formSteps[currentStep]?.title}
+          </CardHeader>
           <CardContent>
             <Form {...form}>
               <form
