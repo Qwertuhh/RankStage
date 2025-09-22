@@ -37,9 +37,11 @@ type InputOTPFormProps = {
   onVerifiedChange?: (valid: boolean) => void;
   // Optional callback to advance the parent stepper when verified
   onSuccessNext?: () => void;
+  // Optional external controller from useOtpVerification
+  controller?: import("@/hooks/use-otp-verification").OtpController;
 };
 
-export function InputOTPForm({ email, name, statusRef, onVerifiedChange, onSuccessNext }: InputOTPFormProps) {
+export function InputOTPForm({ email, name, statusRef, onVerifiedChange, onSuccessNext, controller }: InputOTPFormProps) {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -55,6 +57,7 @@ export function InputOTPForm({ email, name, statusRef, onVerifiedChange, onSucce
 
   // countdown for resend availability
   React.useEffect(() => {
+    if (controller) return; // external controller manages countdown
     if (!expiresAt) return;
     const tick = () => {
       const diff = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
@@ -63,9 +66,13 @@ export function InputOTPForm({ email, name, statusRef, onVerifiedChange, onSucce
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
-  }, [expiresAt]);
+  }, [expiresAt, controller]);
 
   async function requestOtp() {
+    if (controller) {
+      await controller.requestOtp();
+      return;
+    }
     try {
       setResending(true);
       const res = await fetch("/api/auth/verify-email/generator", {
@@ -89,6 +96,14 @@ export function InputOTPForm({ email, name, statusRef, onVerifiedChange, onSucce
   }
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
+    if (controller) {
+      // external controller handles verification
+      const ok = await controller.verify();
+      if (statusRef) statusRef.current = ok;
+      onVerifiedChange?.(ok);
+      if (ok) onSuccessNext?.();
+      return;
+    }
     if (!token) {
       toast.warning("Please request a code first.");
       return;
@@ -106,7 +121,6 @@ export function InputOTPForm({ email, name, statusRef, onVerifiedChange, onSucce
       onVerifiedChange?.(valid);
       if (valid) {
         toast.success("Email verified!");
-        // Advance to next step if provided
         onSuccessNext?.();
       } else {
         toast.error("Invalid or expired code. Try again or resend.");
@@ -130,7 +144,15 @@ export function InputOTPForm({ email, name, statusRef, onVerifiedChange, onSucce
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <InputOTP maxLength={6} {...field}>
+                <InputOTP
+                  maxLength={6}
+                  {...field}
+                  value={controller ? controller.pin : field.value}
+                  onChange={(v) => {
+                    field.onChange(v);
+                    if (controller) controller.setPin(v);
+                  }}
+                >
                   <InputOTPGroup>
                     <InputOTPSlot index={0} />
                     <InputOTPSlot index={1} />
@@ -153,18 +175,14 @@ export function InputOTPForm({ email, name, statusRef, onVerifiedChange, onSucce
             type="button"
             variant="outline"
             onClick={requestOtp}
-            disabled={resending}
+            disabled={controller ? controller.resending : resending}
           >
-            {resending ? "Sending..." : token ? "Resend Code" : "Send Code"}
+            {(controller ? controller.resending : resending)
+              ? "Sending..."
+              : (controller ? controller.token : token)
+                ? "Resend Code"
+                : "Send Code"}
           </Button>
-
-        <Button
-          type="button"
-          disabled={loading}
-          onClick={form.handleSubmit(onSubmit)}
-          >
-          {loading ? "Verifying..." : "Verify"}
-        </Button>
           </div>
       </div>
     </Form>

@@ -23,6 +23,7 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import { Button } from "../ui/button";
 import { ArrowBigLeft, ArrowBigRight, MoveRight } from "lucide-react";
 import OtpVerificationComponent from "./form-components/otp-verification";
+import type { OtpController } from "@/hooks/use-otp-verification";
 import {
   Tabs,
   TabsPanel,
@@ -206,6 +207,8 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
   // Track the values at the time OTP was verified
   const verifiedEmailRef = useRef<string | null>(null);
   const verifiedPasswordRef = useRef<string | null>(null);
+  // Expose OTP controller from child to trigger verify via a button here
+  const otpControllerRef = useRef<OtpController | null>(null);
 
   //* When OTP flips to true, capture current email/password as the verified baseline
   useEffect(() => {
@@ -455,6 +458,7 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
                         <OtpVerificationComponent
                           form={form}
                           onNext={handleNext}
+                          controllerRef={otpControllerRef}
                         />
                       ) : (
                         step.component
@@ -469,22 +473,40 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
                       onClick={() =>
                         setCurrentStep((prev) => Math.max(prev - 1, 0))
                       }
+                      disabled={form.formState.isSubmitting}
                     >
                       <ArrowBigLeft />
                     </Button>
                   )}
+
                   {currentStep < formSteps.length - 1 && (
-                    <Button
-                      type="button"
-                      onClick={handleNext}
-                      disabled={
-                        form.formState.isSubmitting ||
-                        (formSteps[currentStep].id === "otp" &&
-                          !form.watch("otp"))
-                      }
-                    >
-                      <ArrowBigRight />
-                    </Button>
+                    formSteps[currentStep].id === "otp" ? (
+                      !form.watch("otp") ? (
+                        <Button
+                          type="button"
+                          onClick={() => otpControllerRef.current?.verify()}
+                          disabled={form.formState.isSubmitting}
+                        >
+                          Verify
+                        </Button>
+                      ) : (
+                        <Button
+                          type="button"
+                          onClick={handleNext}
+                          disabled={form.formState.isSubmitting}
+                        >
+                          <ArrowBigRight />
+                        </Button>
+                      )
+                    ) : (
+                      <Button
+                        type="button"
+                        onClick={handleNext}
+                        disabled={form.formState.isSubmitting}
+                      >
+                        <ArrowBigRight />
+                      </Button>
+                    )
                   )}
                 </div>
               </form>
