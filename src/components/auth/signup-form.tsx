@@ -44,6 +44,7 @@ import { AnimateIcon } from "@/components/animate-ui/icons/icon";
 type FormStep = {
   id: string;
   title: string;
+  description: string;
   component: React.ReactNode;
   fields: (keyof z.infer<typeof formSchema>)[];
 };
@@ -97,18 +98,22 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
       {
         id: "name",
         title: "Name",
+        description: "Tell us your name so we know how to address you.",
         component: <NameComponent form={form} />,
         fields: ["firstName", "lastName"],
       },
       {
         id: "email",
         title: "Email",
+        description: "Use a valid email. We’ll send a verification code here.",
         component: <EmailComponent form={form} />,
         fields: ["email"],
       },
       {
         id: "avatar",
         title: "Avatar",
+        description:
+          "Optional. Upload a profile picture to personalize your account.",
         component: <AvatarComponent form={form} />,
         fields: ["avatar"],
       },
@@ -116,42 +121,53 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
       {
         id: "bio",
         title: "Biography",
+        description: "A short bio helps others learn more about you.",
         component: <BioComponent form={form} />,
         fields: ["bio"],
       },
       {
         id: "location",
         title: "Location",
+        description:
+          "Share your city or region. This can help with personalization.",
         component: <LocationComponent form={form} />,
         fields: ["location"],
       },
       {
         id: "dob",
         title: "Date of Birth",
+        description: "Select your date of birth. You can’t pick a future date.",
         component: <DateOfBirthComponent form={form} />,
         fields: ["dateOfBirth"],
       },
       {
         id: "password",
         title: "Password",
+        description:
+          "Create a strong password and confirm it to keep your account secure.",
         component: <PasswordComponent form={form} />,
         fields: ["password", "confirmPassword"],
       },
       {
         id: "otp",
         title: "OTP",
+        description:
+          "Enter the 6-digit code we sent to your email to verify your account.",
         component: <OtpVerificationComponent form={form} />,
         fields: ["otp"],
       },
       {
         id: "terms",
         title: "Terms",
+        description: "Please review and accept our terms to continue.",
         component: <TermsComponent form={form} />,
         fields: ["acceptTerms"],
       },
       {
         id: "submit",
         title: "Submit",
+        description:
+          "All set! Review your information and create your account.",
         component: <SubmitForm form={form} />,
         fields: [],
       },
@@ -160,24 +176,6 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
   );
 
   const [currentStep, setCurrentStep] = useState(0);
-  // Human-friendly descriptions for each step
-  const stepDescriptions: Record<string, string> = useMemo(
-    () => ({
-      name: "Tell us your name so we know how to address you.",
-      email: "Use a valid email. We’ll send a verification code here.",
-      avatar: "Optional. Upload a profile picture to personalize your account.",
-      bio: "A short bio helps others learn more about you.",
-      location:
-        "Share your city or region. This can help with personalization.",
-      dob: "Select your date of birth. You can’t pick a future date.",
-      password:
-        "Create a strong password and confirm it to keep your account secure.",
-      otp: "Enter the 6-digit code we sent to your email to verify your account.",
-      terms: "Please review and accept our terms to continue.",
-      submit: "All set! Review your information and create your account.",
-    }),
-    []
-  );
   // Furthest step the user is allowed to jump to via Tabs
   const [jumpingIndex, setJumpingIndex] = useState(0);
   // Scroll the active tab into view when step changes
@@ -486,13 +484,22 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
           <CardHeader className="text-center font-crimson-pro font-semibold text-xl">
             {formSteps[currentStep]?.title}
             <CardDescription className="mt-1 text-sm">
-              {stepDescriptions[formSteps[currentStep]?.id ?? ""]}
+              {formSteps[currentStep]?.description}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
+                onKeyDown={(e) => {
+                  // Handle Enter key press to move to next step
+                  if (e.key === "Enter" && currentStep < formSteps.length - 1) {
+                    e.preventDefault();
+                    // Don't auto-proceed from OTP step, let the verify button handle it
+                    if (formSteps[currentStep].id === "otp") return;
+                    handleNext();
+                  }
+                }}
                 className="space-y-6"
               >
                 <TabsPanels>
