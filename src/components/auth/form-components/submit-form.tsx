@@ -1,9 +1,7 @@
-
 import { UseFormReturn } from "react-hook-form";
 import { formSchema } from "@/types/auth/signup-form-schema";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { RotateCcw } from "lucide-react";
 
 type FormData = z.infer<typeof formSchema>;
 
@@ -17,18 +15,8 @@ function SubmitForm({ form }: { form: UseFormReturn<FormData> }) {
       >
         {form.formState.isSubmitting ? "Submitting..." : "Create Account"}
       </Button>
-      <Button
-        size="icon"
-        className=""
-        onClick={() => {
-          form.reset();
-        }}
-      >
-        <RotateCcw />
-      </Button>
     </div>
   );
 }
 
 export default SubmitForm;
-

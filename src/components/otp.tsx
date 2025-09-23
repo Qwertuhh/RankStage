@@ -123,7 +123,7 @@ export function InputOTPForm({ email, name, controller }: InputOTPFormProps) {
                 </InputOTP>
               </FormControl>
               <FormMessage />
-              <FormDescription>
+              <FormDescription className="w-2xl">
                 {controller ? controller.token
                   ? <>Please enter the OTP sent to <strong>{email}</strong>.</>
                   : "Please request a code first."
