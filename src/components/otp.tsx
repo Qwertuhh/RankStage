@@ -96,7 +96,7 @@ export function InputOTPForm({ email, name, controller }: InputOTPFormProps) {
 
   return (
     <Form {...form}>
-      <div className="w-fit space-y-6">
+      <div className="w-fit space-y-6 mx-auto">
         <FormField
           control={form.control}
           name="pin"
@@ -132,23 +132,22 @@ export function InputOTPForm({ email, name, controller }: InputOTPFormProps) {
             </FormItem>
           )}
         />
+      </div>
         <div className="flex items-center gap-1 text-muted-foreground">
           <Button
             type="button"
-            variant="link"
-            className="text-muted-foreground px-0 mx-0 font-bold text-sm"
+            variant="outline"
+            className="text-muted-foreground px-2 py-0 font-bold text-sm"
             onClick={requestOtp}
             disabled={controller ? controller.resending : resending}
           >
             {(controller ? controller.resending : resending)
               ? "Sending..."
               : (controller ? controller.token : token)
-              ? "Resend"
-              : "Send"}
+              ? "Resend code"
+              : "Send code"}
           </Button>
-        code to your email.
         </div>
-      </div>
     </Form>
   );
 }

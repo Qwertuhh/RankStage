@@ -63,4 +63,25 @@ async function GET(
   }
 }
 
-export { GET };
+
+async function DELETE(request: Request, { params }: { params: { avatar_id: string } }) {
+  try {
+    await connectDB();
+    const { avatar_id } = params;
+    
+  if (!ObjectId.isValid(avatar_id)) {
+    return NextResponse.json(
+      { error: "Invalid avatar ID format" },
+      { status: 400 }
+    );
+  }
+    const bucket = await getGridFSBucket();
+    await bucket.delete(new ObjectId(avatar_id));
+    return NextResponse.json({ message: "Avatar deleted successfully" }, { status: 200 });
+  } catch (error) {
+    console.error("Error deleting avatar:", error);
+    return NextResponse.json({ error: "Failed to delete avatar" }, { status: 500 });
+  }
+}
+
+export { GET, DELETE };

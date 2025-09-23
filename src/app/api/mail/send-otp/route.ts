@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getMailer, getMailFrom } from '@/lib/mailer';
+import { getMailer } from '@/lib/mailer';
+import { getVerificationEmailTemplate } from '@/lib/templates/verification-email';
 import logger from '@/lib/logger';
 
 export const runtime = 'nodejs';
@@ -20,28 +21,22 @@ export async function POST(req: NextRequest) {
     }
 
     const transporter = getMailer();
-    const from = getMailFrom();
-
     logger.info(`[mail/send-otp] Enqueuing OTP email to ${email}`);
-    const subject = 'Verify your email - OTP Code';
-    const text = `Your verification code is ${OTP}. It expires in 10 minutes.`;
-    const html = `
-      <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-        <h2>Verify your email</h2>
-        <p>Hi${name ? ` ${name}` : ''},</p>
-        <p>Your verification code is:</p>
-        <div style="font-size: 24px; font-weight: bold; letter-spacing: 4px;">${OTP}</div>
-        <p style="color:#555;">This code will expire in 10 minutes.
-        If you didn't request this, you can safely ignore this email.</p>
-      </div>
-    `;
+    
+    // Use the verification email template
+    const emailTemplate = getVerificationEmailTemplate({
+      userEmail: email,
+      userName: name ?? '',
+      verificationCode: OTP,
+      expiresIn: '10 minutes'
+    });
 
     const info = await transporter.sendMail({
-      from,
-      to: email,
-      subject,
-      text,
-      html,
+      from: emailTemplate.from,
+      to: emailTemplate.to,
+      subject: emailTemplate.subject,
+      text: emailTemplate.text,
+      html: emailTemplate.html,
     });
 
     logger.info(`[mail/send-otp] Sent OTP email to ${email} (messageId=${info.messageId})`);
