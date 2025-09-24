@@ -4,6 +4,8 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
+type FormData = z.infer<typeof formSchema>;
+
 async function uploadAvatar(avatarFile: File) {
   let avatarId = null;
   try {
@@ -29,8 +31,6 @@ async function uploadAvatar(avatarFile: File) {
   }
   return avatarId;
 }
-
-type FormData = z.infer<typeof formSchema>;
 
 async function onSubmit(values: FormData) {
   // Use a constant toast ID so retries update the same toast instead of stacking

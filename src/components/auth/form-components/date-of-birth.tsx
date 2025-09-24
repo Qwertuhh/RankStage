@@ -1,9 +1,7 @@
 "use client";
 
 import React from "react";
-import { UseFormReturn} from "react-hook-form";
-import { z } from "zod";
-import { formSchema } from "@/types/auth/signup-form-schema";
+import { UseFormReturn, Path } from "react-hook-form";
 import { CalendarIcon } from "lucide-react";
 import {
   FormField,
@@ -15,17 +13,17 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 
-export default function DateOfBirthComponent({
+export default function DateOfBirthComponent<T extends {dateOfBirth: Date}>({
   form,
 }: {
-  form: UseFormReturn<z.infer<typeof formSchema>>;
+  form: UseFormReturn<T>;
 }) {
-  const selected = form.watch("dateOfBirth");
+  const selected = form.watch("dateOfBirth" as Path<T>) as Date | undefined;
 
   return (
     <FormField
       control={form.control}
-      name="dateOfBirth"
+      name={"dateOfBirth" as Path<T>}
       render={({ field }) => (
         <FormItem>
           <div className="flex flex-col gap-2">
@@ -37,7 +35,7 @@ export default function DateOfBirthComponent({
                   className="w-[260px] justify-start text-left font-normal"
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {selected ? selected.toLocaleDateString() : "Select your date of birth"}
+                  {selected instanceof Date ? selected.toLocaleDateString() : "Select your date of birth"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">

@@ -5,32 +5,31 @@ import {
   FormMessage,
   FormDescription,
 } from "@/components/ui/form";
-import { UseFormReturn } from "react-hook-form";
-import { formSchema } from "@/types/auth/signup-form-schema";
-import { z } from "zod";
+import { UseFormReturn, Path } from "react-hook-form";
 import CropperComponent from "@/components/imageCropper";
 
-type FormData = z.infer<typeof formSchema>;
+import { PathValue } from "react-hook-form";
+import { FileWithPath } from "react-dropzone";
 
-function AvatarComponent({ form }: { form: UseFormReturn<FormData> }) {
+function AvatarComponent<T extends {avatar: File | null}>({ form }: { form: UseFormReturn<T> }) {
   return (
     <FormField
       control={form.control}
-      name="avatar"
+      name={"avatar" as Path<T>}
       render={({ field }) => (
         <FormItem>
           <FormLabel>Avatar</FormLabel>
           <CropperComponent
-            onCropped={(file) => {
+            onCropped={(file: FileWithPath) => {
               field.onChange(file);
               // mark field as touched/dirty and trigger validation
-              form.setValue("avatar", file, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
-              form.trigger("avatar");
+              form.setValue("avatar" as Path<T>, file as unknown as PathValue<T, Path<T>>, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+              form.trigger("avatar" as Path<T>);
             }}
             onRemove={() => {
               field.onChange(null);
-              form.setValue("avatar", null, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
-              form.trigger("avatar");
+              form.setValue("avatar" as Path<T>, null as unknown as PathValue<T, Path<T>>, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+              form.trigger("avatar" as Path<T>);
             }}
           />
           <FormDescription>

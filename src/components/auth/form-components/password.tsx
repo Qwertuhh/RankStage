@@ -6,18 +6,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { UseFormReturn } from "react-hook-form";
-import { formSchema } from "@/types/auth/signup-form-schema";
-import { z } from "zod";
-
-type FormData = z.infer<typeof formSchema>;
-
-function BioComponent({ form }: { form: UseFormReturn<FormData> }) {
+import { UseFormReturn, Path } from "react-hook-form";
+function PasswordComponent<T extends {password: string, confirmPassword: string}>({ form }: { form: UseFormReturn<T> }) {
   return (
     <div className="space-y-4">
       <FormField
         control={form.control}
-        name="password"
+        name={"password" as Path<T>}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Password</FormLabel>
@@ -30,7 +25,7 @@ function BioComponent({ form }: { form: UseFormReturn<FormData> }) {
       />
       <FormField
         control={form.control}
-        name="confirmPassword"
+        name={"confirmPassword" as Path<T>}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Confirm Password</FormLabel>
@@ -45,4 +40,4 @@ function BioComponent({ form }: { form: UseFormReturn<FormData> }) {
   );
 }
 
-export default BioComponent;
+export default PasswordComponent;

@@ -6,17 +6,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { UseFormReturn } from "react-hook-form";
-import { formSchema } from "@/types/auth/signup-form-schema";
-import { z } from "zod";
+import { UseFormReturn, Path } from "react-hook-form";
 
-type FormData = z.infer<typeof formSchema>;
-
-function LocationComponent({ form }: { form: UseFormReturn<FormData> }) {
+function LocationComponent<T extends {location: string}>({ form }: { form: UseFormReturn<T> }) {
   return (
     <FormField
       control={form.control}
-      name="location"
+      name={"location" as Path<T>}
       render={({ field }) => (
         <FormItem>
           <FormLabel>Location</FormLabel>

@@ -6,18 +6,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { UseFormReturn } from "react-hook-form";
-import { formSchema } from "@/types/auth/signup-form-schema";
-import { z } from "zod";
+import { UseFormReturn, Path } from "react-hook-form";
 
-type FormData = z.infer<typeof formSchema>;
-
-function NameComponent({ form }: { form: UseFormReturn<FormData> }) {
+function NameComponent<T extends {firstName: string, lastName: string}>({ form }: { form: UseFormReturn<T> }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <FormField
         control={form.control}
-        name="firstName"
+        name={"firstName" as Path<T>}
         render={({ field }) => (
           <FormItem>
             <FormLabel>First name</FormLabel>
@@ -30,7 +26,7 @@ function NameComponent({ form }: { form: UseFormReturn<FormData> }) {
       />
       <FormField
         control={form.control}
-        name="lastName"
+        name={"lastName" as Path<T>}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Last name</FormLabel>

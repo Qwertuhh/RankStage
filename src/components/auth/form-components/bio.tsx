@@ -7,17 +7,13 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import { UseFormReturn } from "react-hook-form";
-import { formSchema } from "@/types/auth/signup-form-schema";
-import { z } from "zod";
+import { UseFormReturn, Path } from "react-hook-form";
 
-type FormData = z.infer<typeof formSchema>;
-
-function BioComponent({ form }: { form: UseFormReturn<FormData> }) {
+function BioComponent<T extends {bio: string}>({ form }: { form: UseFormReturn<T> }) {
   return (
     <FormField
       control={form.control}
-      name="bio"
+      name={"bio" as Path<T>}
       render={({ field }) => (
         <FormItem>
           <FormLabel>Bio</FormLabel>

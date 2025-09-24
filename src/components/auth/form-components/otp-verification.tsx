@@ -1,30 +1,29 @@
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { UseFormReturn } from "react-hook-form";
-import { formSchema } from "@/types/auth/signup-form-schema";
-import { z } from "zod";
 import { InputOTPForm } from "@/components/otp";
 import React from "react";
-import { useOtpVerification, type OtpController } from "@/hooks/use-otp-verification";
+import {
+  useOtpVerification,
+  type OtpController,
+} from "@/hooks/use-otp-verification";
+import { Path, PathValue } from "react-hook-form";
 
-type FormData = z.infer<typeof formSchema>;
-
-function OtpVerificationComponent({
+function OtpVerificationComponent<
+  T extends { email: string; otpVerified: boolean; otp: number }
+>({
   form,
   onNext,
   controllerRef,
 }: {
-  form: UseFormReturn<FormData>;
+  form: UseFormReturn<T>;
   onNext?: () => void;
   controllerRef?: React.MutableRefObject<OtpController | null>;
 }) {
-  const email = form.watch("email");
-  const name = `${form.watch("firstName")} ${form.watch("lastName")}`.trim();
-  const controller = useOtpVerification(email, name);
+  const email = form.watch("email" as Path<T>);
+  const name = `${form.watch("firstName" as Path<T>)} ${form.watch(
+    "lastName" as Path<T>
+  )}`.trim();
+  const controller = useOtpVerification(email as string, name);
 
   // Expose controller to parent via ref
   React.useEffect(() => {
@@ -32,25 +31,48 @@ function OtpVerificationComponent({
     // keep updated reference
   }, [controllerRef, controller]);
 
-  // Keep form's otp field in sync with controller.verified
+  // Keep form's otp and otpVerified fields in sync with controller
   React.useEffect(() => {
-    form.setValue("otp", controller.verified, {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
-  }, [controller.verified, form]);
+    // Update otpVerified based on controller.verified
+    form.setValue(
+      "otpVerified" as Path<T>,
+      controller.verified as PathValue<T, Path<T>>,
+      {
+        shouldDirty: true,
+        shouldValidate: true,
+      }
+    );
+
+    // Update otp value from controller.pin if it's a valid number
+    const otpValue = parseInt(controller.pin, 10);
+    if (!isNaN(otpValue) && controller.pin.length === 6) {
+      form.setValue("otp" as Path<T>, otpValue as PathValue<T, Path<T>>, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    }
+  }, [controller.verified, controller.pin, form]);
+
   return (
     <FormField
       control={form.control}
-      name="otp"
+      name={"otp" as Path<T>}
       render={() => (
-        <FormItem>
+        <FormItem className="w-fit">
           <InputOTPForm
-            email={email}
+            email={email as string}
             name={name}
             controller={controller}
             onVerifiedChange={(valid) => {
-              form.setValue("otp", valid, { shouldDirty: true, shouldValidate: true });
+              // Update otpVerified when verification status changes
+              form.setValue(
+                "otpVerified" as Path<T>,
+                valid as PathValue<T, Path<T>>,
+                {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                }
+              );
             }}
             onSuccessNext={onNext}
           />

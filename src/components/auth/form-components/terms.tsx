@@ -8,17 +8,13 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
-import { UseFormReturn } from "react-hook-form";
-import { formSchema } from "@/types/auth/signup-form-schema";
-import { z } from "zod";
+import { UseFormReturn, Path } from "react-hook-form";
 
-type FormData = z.infer<typeof formSchema>;
-
-function BioComponent({ form }: { form: UseFormReturn<FormData> }) {
+function BioComponent<T extends {acceptTerms: boolean}>({ form }: { form: UseFormReturn<T> }) {
   return (
     <FormField
       control={form.control}
-      name="acceptTerms"
+      name={"acceptTerms" as Path<T>}
       render={({ field }) => (
         <FormItem className="flex flex-row items-start space-x-3 space-y-0">
           <FormControl>
