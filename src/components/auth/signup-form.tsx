@@ -12,7 +12,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { toast, toast } from "sonner";
+import { toast } from "sonner";
 import { formSchema } from "@/types/auth/signup-form-schema";
 import {
   EmailComponent,
