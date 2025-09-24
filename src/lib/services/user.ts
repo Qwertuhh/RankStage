@@ -9,7 +9,7 @@ import { getAccountDeletedTemplate } from "@/lib/templates/account-deleted";
  * Deletes a user and all their related data
  * @param userId - The ID of the user to delete
  */
-export async function deleteUserAndRelatedData(userId: string) {
+async function deleteUserAndRelatedData(userId: string) {
   if (!Types.ObjectId.isValid(userId)) {
     logger.error("Invalid user ID");
     throw new Error("Invalid user ID");
@@ -24,7 +24,9 @@ export async function deleteUserAndRelatedData(userId: string) {
       return;
     }
 
-    const avatarResponse = await fetch(`/api/auth/avatar/${user.avatar}`, { method: "DELETE" });
+    const avatarResponse = await fetch(`/api/auth/avatar/${user.avatar}`, {
+      method: "DELETE",
+    });
     if (!avatarResponse.ok) {
       logger.error("Error deleting avatar");
       return;
@@ -32,10 +34,10 @@ export async function deleteUserAndRelatedData(userId: string) {
 
     // Delete promises concurrently and handle success and failures
     const deletePromises = [
-        Submission.deleteMany({ user: userId }),
-        Domain.deleteMany({ user: userId }),
-        Quiz.deleteMany({ user: userId }),
-      fetch(`/api/auth/avatar/${user.avatar}`, { method: "DELETE" })
+      Submission.deleteMany({ user: userId }),
+      Domain.deleteMany({ user: userId }),
+      Quiz.deleteMany({ user: userId }),
+      fetch(`/api/auth/avatar/${user.avatar}`, { method: "DELETE" }),
     ];
 
     try {
@@ -44,7 +46,6 @@ export async function deleteUserAndRelatedData(userId: string) {
       logger.error("Error deleting user and related data:", error);
       throw error;
     }
-
 
     // Get user email before deletion for notification
     const userEmail = user.email;
@@ -56,24 +57,26 @@ export async function deleteUserAndRelatedData(userId: string) {
       logger.warn("User not deleted");
       return;
     }
-    
-    logger.info(`User and related data deleted successfully for user ID: ${userId}`);
-    
+
+    logger.info(
+      `User and related data deleted successfully for user ID: ${userId}`
+    );
+
     // Send account deletion notification email
     try {
       const mailer = getMailer();
       const mailOptions = getAccountDeletedTemplate(userEmail, userName);
-      
+
       await mailer.sendMail(mailOptions);
       logger.info(`Account deletion email sent to ${userEmail}`);
     } catch (emailError) {
       // Log but don't fail the operation if email sending fails
-      logger.error('Failed to send account deletion email:', emailError);
+      logger.error("Failed to send account deletion email:", emailError);
     }
-
-
   } catch (error) {
     logger.error("Error connecting to database:", error);
     throw error;
   }
 }
+
+export { deleteUserAndRelatedData };

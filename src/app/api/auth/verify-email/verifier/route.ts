@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createHmac, timingSafeEqual } from 'crypto';
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import type { OtpToken } from '@/types/auth/otp-token';
 import logger from '@/lib/logger';
 
@@ -10,13 +10,6 @@ type VerifyRequestBody = {
   email?: string;
   otp?: string;
   token?: string | OtpToken; // Accept a raw JWT string or the structured token
-};
-
-type OtpJwtPayload = {
-  email: string;
-  otpHash: string;
-  iat?: number;
-  exp?: number;
 };
 
 export async function POST(req: NextRequest) {
@@ -45,7 +38,7 @@ export async function POST(req: NextRequest) {
     const tokenStr = typeof tokenInput === 'string' ? tokenInput : tokenInput.token;
 
     try {
-      const decoded = jwt.verify(tokenStr, OTP_SECRET, { algorithms: ['HS256'] }) as OtpJwtPayload;
+      const decoded: JwtPayload = jwt.verify(tokenStr, OTP_SECRET, { algorithms: ['HS256'] }) as JwtPayload;
 
       // Check embedded email matches request email
       if (!decoded?.email || decoded.email !== email) {
