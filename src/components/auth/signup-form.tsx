@@ -41,6 +41,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { MoveRight } from "@/components/animate-ui/icons/move-right";
 import { AnimateIcon } from "@/components/animate-ui/icons/icon";
 
+type FormData = z.infer<typeof formSchema>;
+
 type FormStep = {
   id: string;
   title: string;
@@ -89,7 +91,8 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
       password: "",
       confirmPassword: "",
       acceptTerms: false,
-      otp: false,
+      otp: 0,
+      otpVerified: false,
     },
   });
 
@@ -99,7 +102,7 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
         id: "name",
         title: "Name",
         description: "Tell us your name so we know how to address you.",
-        component: <NameComponent form={form} />,
+        component: <NameComponent<FormData> form={form} />,
         fields: ["firstName", "lastName"],
       },
       {
@@ -243,8 +246,8 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
 
   //* When OTP flips to true, capture current email/password as the verified baseline
   useEffect(() => {
-    const otp = form.watch("otp");
-    if (otp === true) {
+    const otpVerified = form.watch("otpVerified");
+    if (otpVerified === true) {
       verifiedEmailRef.current = form.getValues("email");
       verifiedPasswordRef.current = form.getValues("password");
     }
@@ -264,15 +267,15 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
       verifiedPasswordRef.current !== null &&
       watchedPassword !== verifiedPasswordRef.current;
     if (emailChanged || passwordChanged) {
-      form.setValue("otp", false, { shouldDirty: true, shouldValidate: true });
+      form.setValue("otpVerified", false, { shouldDirty: true, shouldValidate: true });
     }
   }, [watchedEmail, watchedPassword, form]);
 
   // When OTP becomes invalid or changes, restrict jumping to at most the OTP step
   useEffect(() => {
-    const otp = form.getValues("otp");
+    const otpVerified = form.getValues("otpVerified");
     const otpIdx = formSteps.findIndex((s) => s.id === "otp");
-    if (otp === false) {
+    if (otpVerified === false) {
       setJumpingIndex((prev) => Math.min(prev, otpIdx === -1 ? prev : otpIdx));
       setCurrentStep((prev) => Math.min(prev, otpIdx === -1 ? prev : otpIdx));
     }

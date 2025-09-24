@@ -96,13 +96,13 @@ export function InputOTPForm({ email, name, controller }: InputOTPFormProps) {
 
   return (
     <Form {...form}>
-      <div className="w-fit space-y-6 mx-auto">
-        <FormField
-          control={form.control}
-          name="pin"
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
+      <FormField
+        control={form.control}
+        name="pin"
+        render={({ field }) => (
+          <FormItem>
+            <FormControl>
+              <div className="w-fit mx-auto">
                 <InputOTP
                   maxLength={6}
                   {...field}
@@ -121,33 +121,40 @@ export function InputOTPForm({ email, name, controller }: InputOTPFormProps) {
                     <InputOTPSlot index={5} />
                   </InputOTPGroup>
                 </InputOTP>
-              </FormControl>
-              <FormMessage />
-              <FormDescription className="w-2xl">
-                {controller ? controller.token
-                  ? <>Please enter the OTP sent to <strong>{email}</strong>.</>
-                  : "Please request a code first."
-                  : "Please request a code first."}
-              </FormDescription>
-            </FormItem>
-          )}
-        />
+              </div>
+            </FormControl>
+            <FormMessage />
+            <FormDescription className="w-fit">
+              {controller ? (
+                controller.token ? (
+                  <>
+                    Please enter the OTP sent to <strong>{email}</strong>.
+                  </>
+                ) : (
+                  "Please request a code first."
+                )
+              ) : (
+                "Please request a code first."
+              )}
+            </FormDescription>
+          </FormItem>
+        )}
+      />
+      <div className="flex items-center gap-1 my-2 text-muted-foreground">
+        <Button
+          type="button"
+          variant="outline"
+          className="text-muted-foreground px-2 h-fit rounded-md py-1 font-bold text-sm"
+          onClick={requestOtp}
+          disabled={controller ? controller.resending : resending}
+        >
+          {(controller ? controller.resending : resending)
+            ? "Sending..."
+            : (controller ? controller.token : token)
+            ? "Resend code"
+            : "Send code"}
+        </Button>
       </div>
-        <div className="flex items-center gap-1 text-muted-foreground">
-          <Button
-            type="button"
-            variant="outline"
-            className="text-muted-foreground px-2 py-0 font-bold text-sm"
-            onClick={requestOtp}
-            disabled={controller ? controller.resending : resending}
-          >
-            {(controller ? controller.resending : resending)
-              ? "Sending..."
-              : (controller ? controller.token : token)
-              ? "Resend code"
-              : "Send code"}
-          </Button>
-        </div>
     </Form>
   );
 }

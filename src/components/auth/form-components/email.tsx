@@ -6,17 +6,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { UseFormReturn } from "react-hook-form";
-import { formSchema } from "@/types/auth/signup-form-schema";
-import { z } from "zod";
+import { UseFormReturn, Path } from "react-hook-form";
 
-type FormData = z.infer<typeof formSchema>;
-
-function BioComponent({ form }: { form: UseFormReturn<FormData> }) {
+function EmailComponent<T extends {email: string}>({ form }: { form: UseFormReturn<T> }) {
   return (
     <FormField
       control={form.control}
-      name="email"
+      name={"email" as Path<T>}
       render={({ field }) => (
         <FormItem>
           <FormControl>
@@ -29,5 +25,5 @@ function BioComponent({ form }: { form: UseFormReturn<FormData> }) {
   );
 }
 
-export default BioComponent;
+export default EmailComponent;
 
