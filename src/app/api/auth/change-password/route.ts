@@ -88,6 +88,7 @@ async function POST(req: NextRequest) {
           { status: 400 }
         );
       }
+      console.log(email, otp, otpToken);
       const otpCompareResult = await otpCompare(email, otp, otpToken);
       if (!otpCompareResult.success) {
         logger.error("Invalid OTP", {
@@ -95,6 +96,7 @@ async function POST(req: NextRequest) {
           otp,
           otpToken,
         });
+        console.log(otpCompareResult);
         return NextResponse.json(
           { error: otpCompareResult.error ?? "Invalid OTP" },
           { status: 400 }

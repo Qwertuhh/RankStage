@@ -3,7 +3,8 @@ import ChangePasswordForm from "@/components/auth/change-password-form";
 import { CardDescription, CardTitle } from "@/components/ui/card";
 import { useSearchParams } from "next/navigation";
 import { ChangePasswordType } from "@/types/api/auth/change-password";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 function ChangePasswordPage() {
   const searchParams = useSearchParams();
@@ -11,6 +12,12 @@ function ChangePasswordPage() {
     (searchParams.get("requestType") ||
       ChangePasswordType.ForgotPassword) as ChangePasswordType
   );
+  useEffect(() => {
+    const requestType = searchParams.get("requestType");
+    if (requestType) {
+      setRequestType(requestType as ChangePasswordType);
+    }
+  }, [searchParams]);
 
   return (
     <div className="bg-muted flex h-[calc(100vh-var(--navbar-height))] flex-col items-center justify-center gap-2 p-2 md:p-10">
@@ -30,13 +37,13 @@ function ChangePasswordPage() {
         <ChangePasswordForm requestType={requestType} />
         <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
           {requestType === ChangePasswordType.ForgotPassword ? (
-            <a href="/auth/change-password?requestType=reset" className="font-semibold text-primary">
+            <Button variant="link" className="font-semibold text-primary" onClick={() => setRequestType(ChangePasswordType.ResetPassword)}>
               Reset Password
-            </a>
+            </Button>
           ) : (
-            <a href="/auth/change-password?requestType=forgot" className="font-semibold text-primary">
+            <Button variant="link" className="font-semibold text-primary" onClick={() => setRequestType(ChangePasswordType.ForgotPassword)}>
               Forgot Password?
-            </a>
+            </Button>
           )}
         </div>
       </div>
