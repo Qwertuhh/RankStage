@@ -1,0 +1,26 @@
+import ChangePasswordForm from "@/components/auth/change-password-form";
+import { CardDescription, CardTitle } from "@/components/ui/card";
+
+export default function LoginPage() {
+  return (
+    <div className="bg-muted flex h-[calc(100vh-var(--navbar-height))] flex-col items-center justify-center gap-2 p-2 md:p-10">
+      <div className="flex w-full max-w-[var(--signup-form-width)] flex-col gap-6">
+        <div className="flex flex-col gap-2 text-center">
+          <CardTitle className="text-2xl font-crimson-pro">
+            Create an account
+          </CardTitle>
+          <CardDescription>
+            Join us and start your journey today.
+          </CardDescription>
+        </div>
+        <ChangePasswordForm />
+        <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
+          Already have an account?{" "}
+          <a href="/auth/signin" className="font-semibold text-primary">
+            Sign In
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}

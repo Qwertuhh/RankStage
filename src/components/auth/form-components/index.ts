@@ -5,8 +5,9 @@ import PasswordComponent from "@/components/auth/form-components/password";
 import EmailComponent from "@/components/auth/form-components/email";
 import TermsComponent from "@/components/auth/form-components/terms";
 import AvatarComponent from "@/components/auth/form-components/avatar";
-import SubmitForm from "@/components/auth/form-components/signup-submit-form";
+import SignupSubmitForm from "@/components/auth/form-components/signup-submit-form";
 import DateOfBirthComponent from "@/components/auth/form-components/date-of-birth";
+import ChangePasswordSubmitForm from "@/components/auth/form-components/change-password-submit-form";
 
 export {
   NameComponent,
@@ -16,6 +17,7 @@ export {
   EmailComponent,
   TermsComponent,
   AvatarComponent,
-  SubmitForm,
+  SignupSubmitForm,
   DateOfBirthComponent,
+  ChangePasswordSubmitForm,
 };

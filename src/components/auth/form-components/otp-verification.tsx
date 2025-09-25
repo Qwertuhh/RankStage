@@ -17,7 +17,7 @@ function OtpVerificationComponent<
 }: {
   form: UseFormReturn<T>;
   onNext?: () => void;
-  controllerRef?: React.MutableRefObject<OtpController | null>;
+  controllerRef?: React.RefObject<OtpController | null>;
 }) {
   const email = form.watch("email" as Path<T>);
   const name = `${form.watch("firstName" as Path<T>)} ${form.watch(

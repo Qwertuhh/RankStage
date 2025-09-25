@@ -13,17 +13,11 @@ import {
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { formSchema } from "@/types/auth/signup-form-schema";
+import { formSchema } from "@/types/auth/change-password-form-schema";
 import {
   EmailComponent,
-  LocationComponent,
   PasswordComponent,
-  TermsComponent,
-  AvatarComponent,
-  BioComponent,
-  NameComponent,
-  SignupSubmitForm,
-  DateOfBirthComponent,
+  ChangePasswordSubmitForm,
 } from "@/components/auth/form-components";
 import { useState, useMemo, useRef, useEffect } from "react";
 import { Button } from "../ui/button";
@@ -40,6 +34,10 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MoveRight } from "@/components/animate-ui/icons/move-right";
 import { AnimateIcon } from "@/components/animate-ui/icons/icon";
+import { useSearchParams } from "next/navigation";
+import { ChangePasswordType } from "@/types/api/auth/change-password";
+import OldPasswordComponent from "./form-components/oldPassword";
+import clientLogger from "@/lib/sdk/client-logger";
 
 type FormData = z.infer<typeof formSchema>;
 
@@ -51,106 +49,119 @@ type FormStep = {
   fields: (keyof z.infer<typeof formSchema>)[];
 };
 
-function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
+function ChangePasswordForm({
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
+  const searchParams = useSearchParams();
+  const requestType = (searchParams.get("requestType") ||
+    ChangePasswordType.ForgotPassword) as ChangePasswordType;
+  clientLogger("info", "ChangePasswordForm", { requestType });
+  console.log(`requestType: ${requestType}`);
+  const otpControllerRef = useRef<OtpController | null>(null);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      firstName: "",
-      lastName: "",
       email: "",
-      avatar: null,
-      bio: "",
-      location: "",
-      dateOfBirth: new Date("2000-01-01"),
       password: "",
       confirmPassword: "",
-      acceptTerms: false,
+      oldPassword: "",
       otp: 0,
       otpVerified: false,
     },
   });
 
-  const formSteps = useMemo<FormStep[]>(
-    () => [
-      {
-        id: "name",
-        title: "Name",
-        description: "Tell us your name so we know how to address you.",
-        component: <NameComponent<FormData> form={form} />,
-        fields: ["firstName", "lastName"],
-      },
+  const formSteps = useMemo<FormStep[]>(() => {
+    if (requestType === ChangePasswordType.ResetPassword) {
+      return [
+        {
+          id: "email",
+          title: "Email",
+          description:
+            "Use a valid registered email. We’ll send a verification code here.",
+          component: <EmailComponent form={form} />,
+          fields: ["email"],
+        },
+        {
+          id: "old-password",
+          title: "Old Password",
+          description: "Enter your old password to verify your account.",
+          component: <OldPasswordComponent form={form} />,
+          fields: ["oldPassword"],
+        },
+        {
+          id: "password",
+          title: "New Password",
+          description:
+            "Create a strong password and confirm it to keep your account secure.",
+          component: <PasswordComponent form={form} />,
+          fields: ["password", "confirmPassword"],
+        },
+        {
+          id: "submit",
+          title: "Submit",
+          description:
+            "All set! Review your information and change your password.",
+          component: (
+            <ChangePasswordSubmitForm
+              form={form}
+              otpToken={otpControllerRef.current?.token || ""}
+              requestType={requestType}
+            />
+          ),
+          fields: [],
+        },
+      ];
+    }
+
+    // Default case for ChangePasswordType.ForgotPassword
+    return [
       {
         id: "email",
         title: "Email",
-        description: "Use a valid email. We’ll send a verification code here.",
+        description:
+          "Use a valid registered email. We’ll send a verification code here.",
         component: <EmailComponent form={form} />,
         fields: ["email"],
       },
       {
-        id: "avatar",
-        title: "Avatar",
+        id: "otp",
+        title: "OTP",
         description:
-          "Optional. Upload a profile picture to personalize your account.",
-        component: <AvatarComponent form={form} />,
-        fields: ["avatar"],
-      },
-
-      {
-        id: "bio",
-        title: "Biography",
-        description: "A short bio helps others learn more about you.",
-        component: <BioComponent form={form} />,
-        fields: ["bio"],
-      },
-      {
-        id: "location",
-        title: "Location",
-        description:
-          "Share your city or region. This can help with personalization.",
-        component: <LocationComponent form={form} />,
-        fields: ["location"],
-      },
-      {
-        id: "dob",
-        title: "Date of Birth",
-        description: "Select your date of birth. You can’t pick a future date.",
-        component: <DateOfBirthComponent form={form} />,
-        fields: ["dateOfBirth"],
+          "Enter the 6-digit code we sent to your registered email to verify your account.",
+        component: (
+          <OtpVerificationComponent
+            form={form}
+            controllerRef={otpControllerRef}
+          />
+        ),
+        fields: ["otp"],
       },
       {
         id: "password",
-        title: "Password",
+        title: "New Password",
         description:
           "Create a strong password and confirm it to keep your account secure.",
         component: <PasswordComponent form={form} />,
         fields: ["password", "confirmPassword"],
       },
       {
-        id: "otp",
-        title: "OTP",
-        description:
-          "Enter the 6-digit code we sent to your email to verify your account.",
-        component: <OtpVerificationComponent form={form} />,
-        fields: ["otp"],
-      },
-      {
-        id: "terms",
-        title: "Terms",
-        description: "Please review and accept our terms to continue.",
-        component: <TermsComponent form={form} />,
-        fields: ["acceptTerms"],
-      },
-      {
         id: "submit",
         title: "Submit",
         description:
-          "All set! Review your information and create your account.",
-        component: <SignupSubmitForm form={form} />,
+          "All set! Review your information and change your password.",
+        component: (
+          <ChangePasswordSubmitForm
+            form={form}
+            otpToken={otpControllerRef.current?.token || ""}
+            requestType={requestType}
+          />
+        ),
         fields: [],
       },
-    ],
-    [form]
-  );
+    ];
+  }, [form, requestType, otpControllerRef]);
 
   const [currentStep, setCurrentStep] = useState(0);
   // Furthest step the user is allowed to jump to via Tabs
@@ -215,8 +226,6 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
   // Track the values at the time OTP was verified
   const verifiedEmailRef = useRef<string | null>(null);
   const verifiedPasswordRef = useRef<string | null>(null);
-  // Expose OTP controller from child to trigger verify via a button here
-  const otpControllerRef = useRef<OtpController | null>(null);
 
   //* When OTP flips to true, capture current email/password as the verified baseline
   useEffect(() => {
@@ -241,7 +250,10 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
       verifiedPasswordRef.current !== null &&
       watchedPassword !== verifiedPasswordRef.current;
     if (emailChanged || passwordChanged) {
-      form.setValue("otpVerified", false, { shouldDirty: true, shouldValidate: true });
+      form.setValue("otpVerified", false, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
     }
   }, [watchedEmail, watchedPassword, form]);
 
@@ -275,28 +287,13 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
   const handleNext = async () => {
     const isValid = await validateCurrentStep();
     if (isValid) {
-      // If trying to go to submit step, ensure terms are accepted
-      if (currentStep === formSteps.findIndex(step => step.id === 'terms')) {
-        const termsAccepted = form.getValues('acceptTerms');
-        if (!termsAccepted) {
-          toast.error('You must accept the terms and conditions to continue');
-          return;
-        }
-      }
-      
       const nextIdx = Math.min(currentStep + 1, formSteps.length - 1);
       setCurrentStep(nextIdx);
       setJumpingIndex((prev) => Math.max(prev, nextIdx));
     }
   };
 
-  const onSubmit = async (data: FormData) => {
-    // Final check for terms acceptance
-    if (!data.acceptTerms) {
-      toast.error('You must accept the terms and conditions to create an account');
-      return;
-    }
-    
+  const onSubmit = async () => {
     toast.loading("Creating your account...");
     // Rest of your submission logic here
   };
@@ -464,4 +461,4 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-export default SignUpForm;
+export default ChangePasswordForm;

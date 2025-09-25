@@ -2,7 +2,7 @@ import { z } from "zod";
 
 enum ChangePasswordType {
   ForgotPassword = "forgot-password",
-  ChangePassword = "change-password",
+  ResetPassword = "reset-password",
 }
 
 interface ChangePasswordRequest {
@@ -22,7 +22,7 @@ const changePasswordSchema = z.object({
   oldPassword: z.string().min(8),
   requestType: z.enum([
     ChangePasswordType.ForgotPassword,
-    ChangePasswordType.ChangePassword,
+    ChangePasswordType.ResetPassword,
   ]),
 });
 export type { ChangePasswordRequest };
