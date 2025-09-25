@@ -58,7 +58,7 @@ function OtpVerificationComponent<
       control={form.control}
       name={"otp" as Path<T>}
       render={() => (
-        <FormItem className="w-fit">
+        <FormItem className="w-full">
           <InputOTPForm
             email={email as string}
             name={name}

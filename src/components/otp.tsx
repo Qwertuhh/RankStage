@@ -20,6 +20,7 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
+import { SlidingNumber } from "@/components/animate-ui/primitives/texts/sliding-number";
 
 const FormSchema = z.object({
   pin: z.string().min(6, {
@@ -55,17 +56,50 @@ export function InputOTPForm({ email, name, controller }: InputOTPFormProps) {
 
   // countdown for resend availability
   React.useEffect(() => {
-    if (controller) return; // external controller manages countdown
+    // If using external controller, use its remaining time
+    if (controller) {
+      const updateRemaining = () => {
+        if (controller.expiresAt) {
+          const diff = Math.max(0, Math.floor((controller.expiresAt - Date.now()) / 1000));
+          setRemaining(diff);
+        }
+      };
+      
+      // Initial update
+      updateRemaining();
+      
+      // Update every second if we have an expiration time
+      let intervalId: NodeJS.Timeout;
+      if (controller.expiresAt) {
+        intervalId = setInterval(updateRemaining, 1000);
+      }
+      
+      return () => clearInterval(intervalId);
+    }
+    
+    // Local countdown management
     if (!expiresAt) return;
+    
     const tick = () => {
       const diff = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
       setRemaining(diff);
     };
+    
+    // Initial tick
     tick();
+    
+    // Set up interval
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, [expiresAt, controller]);
-
+  
+  // Update remaining time when controller's expiresAt changes
+  React.useEffect(() => {
+    if (controller?.expiresAt) {
+      const diff = Math.max(0, Math.floor((controller.expiresAt - Date.now()) / 1000));
+      setRemaining(diff);
+    }
+  }, [controller?.expiresAt]);
   async function requestOtp() {
     if (controller) {
       await controller.requestOtp();
@@ -100,9 +134,9 @@ export function InputOTPForm({ email, name, controller }: InputOTPFormProps) {
         control={form.control}
         name="pin"
         render={({ field }) => (
-          <FormItem>
+          <FormItem className="w-full">
             <FormControl>
-              <div className="w-fit">
+              <div className="flex justify-center items-center">
                 <InputOTP
                   maxLength={6}
                   {...field}
@@ -140,7 +174,7 @@ export function InputOTPForm({ email, name, controller }: InputOTPFormProps) {
           </FormItem>
         )}
       />
-      <div className="flex items-center gap-1 my-2 text-muted-foreground">
+      <div className="flex flex-col items-left justify-left gap-1 my-2 text-muted-foreground">
         <Button
           type="button"
           variant="outline"
@@ -154,6 +188,24 @@ export function InputOTPForm({ email, name, controller }: InputOTPFormProps) {
             ? "Resend code"
             : "Send code"}
         </Button>
+        {remaining > 0 && (
+          <div className="flex items-center gap-1 text-muted-foreground text-sm">
+            <SlidingNumber
+              number={Math.floor(remaining / 60)}
+              padStart={true}
+              decimalPlaces={0}
+              className="font-semibold text-center"
+            />
+            <span>:</span>
+            <SlidingNumber
+              number={remaining % 60}
+              padStart={true}
+              decimalPlaces={0}
+              className="font-semibold text-center"
+            />
+            <span>remaining</span>
+          </div>
+        )}
       </div>
     </Form>
   );
