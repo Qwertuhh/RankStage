@@ -27,14 +27,6 @@ async function onSubmit(
       ...(requestType === ChangePasswordType.ResetPassword && { oldPassword }),
     };
 
-    // 2. Log the request details
-    console.group("Change Password Request");
-    console.log("Request URL:", "/api/auth/change-password");
-    console.log("Request Type:", requestType);
-    console.log("Request Body:", JSON.stringify(requestBody, null, 2));
-    console.log("OTP Token:", otpToken);
-    console.groupEnd();
-
     // 3. Make the API call
     const response = await fetch("/api/auth/change-password", {
       method: "POST",
@@ -50,6 +42,12 @@ async function onSubmit(
       try {
         errorData = await response.json();
         console.error("Error Response:", errorData);
+        clientLogger("error", "Failed to change password", {
+          error: errorData?.message,
+          requestType,
+          email,
+        });
+        toast.error(errorData?.error || "Failed to change password");
       } catch (e) {
         console.error("Failed to parse error response");
       }
@@ -61,7 +59,7 @@ async function onSubmit(
 
     // 5. Handle successful response
     const responseData = await response.json();
-    console.log("Success Response:", responseData);
+    clientLogger("info", "Success Response:", responseData);
     toast.success("Password changed successfully");
   } catch (error) {
     console.error("Error in onSubmit:", error);
