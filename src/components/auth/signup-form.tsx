@@ -275,14 +275,30 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
   const handleNext = async () => {
     const isValid = await validateCurrentStep();
     if (isValid) {
+      // If trying to go to submit step, ensure terms are accepted
+      if (currentStep === formSteps.findIndex(step => step.id === 'terms')) {
+        const termsAccepted = form.getValues('acceptTerms');
+        if (!termsAccepted) {
+          toast.error('You must accept the terms and conditions to continue');
+          return;
+        }
+      }
+      
       const nextIdx = Math.min(currentStep + 1, formSteps.length - 1);
       setCurrentStep(nextIdx);
       setJumpingIndex((prev) => Math.max(prev, nextIdx));
     }
   };
 
-  const onSubmit = async () => {
-   toast.loading("Creating your account...");
+  const onSubmit = async (data: FormData) => {
+    // Final check for terms acceptance
+    if (!data.acceptTerms) {
+      toast.error('You must accept the terms and conditions to create an account');
+      return;
+    }
+    
+    toast.loading("Creating your account...");
+    // Rest of your submission logic here
   };
 
   return (

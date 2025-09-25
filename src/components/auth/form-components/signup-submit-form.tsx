@@ -3,6 +3,7 @@ import { formSchema } from "@/types/auth/signup-form-schema";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import clientLogger from "@/lib/sdk/client-logger";
 
 type FormData = z.infer<typeof formSchema>;
 
@@ -67,10 +68,14 @@ async function onSubmit(values: FormData) {
       password: values.password,
       confirmPassword: values.confirmPassword,
       bio: values.bio?.trim() || "",
+      acceptTerms: values.acceptTerms,
       location: values.location?.trim() || "",
       ...(avatarId && { avatar: avatarId }), // Only include avatar if it exists
     };
-
+    if (!userData.acceptTerms) {
+      clientLogger("error", "User must accept the terms and conditions.");
+      throw new Error("User must accept the terms and conditions.");
+    }
     const response = await fetch("/api/auth/signup", {
       method: "POST",
       headers: {

@@ -102,7 +102,7 @@ export function InputOTPForm({ email, name, controller }: InputOTPFormProps) {
         render={({ field }) => (
           <FormItem>
             <FormControl>
-              <div className="w-fit mx-auto">
+              <div className="w-fit">
                 <InputOTP
                   maxLength={6}
                   {...field}
