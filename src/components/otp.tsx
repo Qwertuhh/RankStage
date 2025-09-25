@@ -47,7 +47,12 @@ export function InputOTPForm({ email, name, controller }: InputOTPFormProps) {
     defaultValues: {
       pin: "",
     },
+    mode: 'onTouched', // Only validate on blur or when submitting
+    reValidateMode: 'onChange', // Re-validate on change after first error
   });
+  
+  // Track if the user has interacted with the input
+  const [hasInteracted, setHasInteracted] = React.useState(false);
 
   const [resending, setResending] = React.useState(false);
   const [token, setToken] = React.useState<string | null>(null);
@@ -142,9 +147,11 @@ export function InputOTPForm({ email, name, controller }: InputOTPFormProps) {
                   {...field}
                   value={controller ? controller.pin : field.value}
                   onChange={(v) => {
+                    setHasInteracted(true);
                     field.onChange(v);
                     if (controller) controller.setPin(v);
                   }}
+                  onBlur={() => setHasInteracted(true)}
                 >
                   <InputOTPGroup>
                     <InputOTPSlot index={0} />
@@ -157,7 +164,9 @@ export function InputOTPForm({ email, name, controller }: InputOTPFormProps) {
                 </InputOTP>
               </div>
             </FormControl>
-            <FormMessage />
+            <FormMessage>
+              {hasInteracted && form.formState.errors.pin?.message}
+            </FormMessage>
             <FormDescription className="w-fit">
               {controller ? (
                 controller.token ? (
