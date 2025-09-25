@@ -8,18 +8,18 @@ enum ChangePasswordType {
 interface ChangePasswordRequest {
   email: string;
   newPassword: string;
-  otpToken: string;
-  otp: string;
-  oldPassword: string;
+  otpToken?: string;
+  otp?: string;
+  oldPassword?: string;
   requestType: ChangePasswordType;
 }
 
 const changePasswordSchema = z.object({
   email: z.string().email(),
   newPassword: z.string().min(8),
-  otpToken: z.string().min(1),
-  otp: z.string().min(1),
-  oldPassword: z.string().min(8),
+  otpToken: z.string().min(1).optional(),
+  otp: z.string().min(1).optional(),
+  oldPassword: z.string().min(8).optional(),
   requestType: z.enum([
     ChangePasswordType.ForgotPassword,
     ChangePasswordType.ResetPassword,

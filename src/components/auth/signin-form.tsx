@@ -134,6 +134,14 @@ function SigninForm({ className, ...props }: React.ComponentProps<"div">) {
                     </FormItem>
                   )}
                 />
+                <div className="text-right mt-1">
+                  <a 
+                    href="/auth/change-password?requestType=forgot-password" 
+                    className="text-sm text-primary hover:underline"
+                  >
+                    Forgot Password?
+                  </a>
+                </div>
                 <Button type="submit" disabled={isLoading} className="w-full">
                   {isLoading ? 'Signing in...' : 'Sign in'}
                 </Button>

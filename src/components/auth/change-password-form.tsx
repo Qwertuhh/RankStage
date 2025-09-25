@@ -44,11 +44,11 @@ type FormData = z.infer<typeof formSchema>;
 
 function ChangePasswordForm({
   className,
+  requestType,
   ...props
-}: React.ComponentProps<"div">) {
-  const searchParams = useSearchParams();
-  const requestType = (searchParams.get("requestType") ||
-  ChangePasswordType.ForgotPassword) as ChangePasswordType;
+}: React.ComponentProps<"div"> & {
+  requestType: ChangePasswordType;
+}) {
 
   clientLogger("info", "ChangePasswordForm", { requestType });
   const otpControllerRef = useRef<OtpController | null>(null);
