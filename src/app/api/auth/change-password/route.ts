@@ -30,15 +30,7 @@ async function POST(req: NextRequest) {
     const { email, newPassword, otpToken, otp, oldPassword, requestType } =
       result;
 
-    if (requestType === ChangePasswordType.ChangePassword) {
-      const otpCompareResult = await otpCompare(email, otp, otpToken);
-      if (!otpCompareResult.success) {
-        return NextResponse.json(
-          { error: otpCompareResult.error ?? "Invalid OTP" },
-          { status: 400 }
-        );
-      }
-
+    if (requestType === ChangePasswordType.ResetPassword) {
       const user = await User.findOne({ email });
       if (!user) {
         return NextResponse.json({ error: "User not found" }, { status: 404 });

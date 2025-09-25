@@ -18,7 +18,7 @@ function OldPasswordComponent<T extends { oldPassword?: string }>({
 
   // If oldPassword is not present, return null
   clientLogger("warn", "OldPasswordComponent", { oldPassword });
-  if (!oldPassword) return null;
+  if (oldPassword === undefined || oldPassword === null) return null;
   return (
     <div className="space-y-4">
       <FormField

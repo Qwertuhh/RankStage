@@ -38,16 +38,9 @@ import { useSearchParams } from "next/navigation";
 import { ChangePasswordType } from "@/types/api/auth/change-password";
 import OldPasswordComponent from "./form-components/oldPassword";
 import clientLogger from "@/lib/sdk/client-logger";
+import type { FormStep } from "@/types/auth/change-password-form-schema";
 
 type FormData = z.infer<typeof formSchema>;
-
-type FormStep = {
-  id: string;
-  title: string;
-  description: string;
-  component: React.ReactNode;
-  fields: (keyof z.infer<typeof formSchema>)[];
-};
 
 function ChangePasswordForm({
   className,
@@ -55,9 +48,9 @@ function ChangePasswordForm({
 }: React.ComponentProps<"div">) {
   const searchParams = useSearchParams();
   const requestType = (searchParams.get("requestType") ||
-    ChangePasswordType.ForgotPassword) as ChangePasswordType;
+  ChangePasswordType.ForgotPassword) as ChangePasswordType;
+
   clientLogger("info", "ChangePasswordForm", { requestType });
-  console.log(`requestType: ${requestType}`);
   const otpControllerRef = useRef<OtpController | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({

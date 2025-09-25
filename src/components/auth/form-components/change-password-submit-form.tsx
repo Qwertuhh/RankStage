@@ -30,7 +30,9 @@ async function onSubmit(
       }),
     });
     if (!response.ok) {
-      throw new Error("Failed to change password");
+      const errorData = await response.json();
+      clientLogger("error", "Failed to change password", errorData);
+      throw new Error(errorData || "Failed to change password");
     }
     toast.success("Password changed successfully");
   } catch (error) {
