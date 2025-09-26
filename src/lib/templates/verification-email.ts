@@ -15,7 +15,7 @@ export function getVerificationEmailTemplate({
   verificationUrl,
   expiresIn = '15 minutes'
 }: VerificationEmailProps) {
-  const { name: fromName } = getMailFrom();
+  const { name: fromName, address: fromAddress } = getMailFrom();
   const codeHtml = `
     <div style="
       display: inline-block;
@@ -34,7 +34,7 @@ export function getVerificationEmailTemplate({
   `;
   
   return {
-    from: `"${fromName}" <${getMailFrom().address}>`,
+    from: `"${fromName}" <${fromAddress}>`,
     to: userEmail,
     subject: `Your Verification Code - ${verificationCode}`,
     text: `

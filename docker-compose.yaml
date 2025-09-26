@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  mailpit:
+    image: axllent/mailpit
+    container_name: mailpit
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Web UI
+    volumes:
+      - ./cert.pem:/cert.pem:ro
+      - ./key.pem:/key.pem:ro
+      - ./smtp-auth.txt:/smtp-auth.txt:ro
+    environment:
+      MP_SMTP_TLS_CERT: /cert.pem
+      MP_SMTP_TLS_KEY: /key.pem
+      MP_SMTP_REQUIRE_STARTTLS: "true"
+      MP_SMTP_AUTH_FILE: /smtp-auth.txt
+      MP_SMTP_AUTH_ALLOW_INSECURE: "false"
+      MP_SMTP_AUTH_ACCEPT_ANY: "false"

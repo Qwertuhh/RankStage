@@ -1,36 +1,172 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RankStage
 
-## Getting Started
+A modern web application for ranking stages in a game.
 
-First, run the development server:
+## Features
+
+- **User Authentication** - Secure login and registration system
+- **Email Verification** - Account verification via email
+- **Docker Support** - Containerized development environment
+- **TypeScript** - Type-safe JavaScript development
+- **React** - Modern frontend framework
+- **SMTP Integration** - For sending transactional emails
+
+## Tech Stack
+
+- **Frontend**: React, TypeScript, Redux, React Router
+- **Backend**: Node.js, Express.js
+- **Database**: MongoDB
+- **Email**: SMTP with Mailpit for development
+- **Containerization**: Docker
+- **Security**: HTTPS with mkcert for local development
+
+## Prerequisites
+
+- Node.js (v16+)
+- npm or yarn
+- Docker & Docker Compose
+- mkcert (for local HTTPS)
+- Chocolatey (Windows package manager)
+
+## Quick Start
+
+### 1. Clone the Repository
 
 ```bash
+git clone https://github.com/yourusername/rankstage.git
+cd rankstage
+```
+
+### 2. Install Dependencies
+
+```bash
+npm install
+# or
+yarn install
+```
+
+### 3. Set Up Environment Variables
+
+Create a `.env` file in the root directory:
+
+```env
+NODE_ENV=development
+# Add other environment variables here
+```
+
+### 4. Set Up HTTPS (Local Development)
+
+#### Install Chocolatey (Windows)
+
+```powershell
+Set-ExecutionPolicy Bypass -Scope Process -Force; `
+iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+```
+
+#### Install mkcert
+
+```powershell
+choco install mkcert
+```
+
+#### Generate SSL Certificates
+
+```bash
+mkcert -install
+mkcert -cert-file cert.pem -key-file key.pem localhost
+```
+
+### 5. Start Development Environment
+
+```bash
+# Start Docker containers
+docker compose up -d
+
+# Start development server
 npm run dev
 # or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit: `https://localhost:3000`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Testing
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm test
+# or
+yarn test
+```
 
-## Learn More
+## Build
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run build
+# or
+yarn build
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Learning Journey
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Technologies Learned
 
-## Deploy on Vercel
+- **TypeScript**: Improved type safety and developer experience
+- **Docker**: Containerization and service orchestration
+- **SMTP**: Email delivery system implementation
+- **React Hooks**: Modern React patterns and state management
+- **Environment Configuration**: Managing different environments
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Challenges Overcome
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. **Email Delivery**: Implemented a reliable email verification system
+2. **HTTPS Setup**: Configured local development with trusted certificates
+3. **Docker Integration**: Containerized the application for consistent environments
+4. **Type Safety**: Improved code quality with TypeScript
+
+## Project Structure
+
+```
+rankstage/
+├── src/                    # Source files
+│   ├── components/         # React components
+│   ├── lib/                # Utility libraries
+│   │   ├── mailer.ts       # Email functionality
+│   │   └── templates/      # Email templates
+│   └── ...
+├── public/                 # Static files
+├── docker-compose.yaml     # Docker Compose configuration
+├── Dockerfile              # Docker configuration
+└── ...
+```
+
+## Development Workflow
+
+1. Create a new branch for your feature: `git checkout -b feature/your-feature`
+2. Make your changes and commit them
+3. Push to the branch: `git push origin feature/your-feature`
+4. Create a Pull Request
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgements
+
+- [Mailpit](https://github.com/axllent/mailpit) - Email testing tool
+- [mkcert](https://github.com/FiloSottile/mkcert) - Local SSL certificates
+- [Create React App](https://create-react-app.dev/) - Project bootstrapping
+- [Docker](https://www.docker.com/) - Containerization platform
+
+## Contact
+
+[Qwertuhh](https://github.com/qwertuhh)
+
+Project Link: [RankStage](https://github.com/qwertuhh/rankstage)
