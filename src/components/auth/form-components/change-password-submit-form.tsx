@@ -49,7 +49,7 @@ async function onSubmit(
         });
         toast.error(errorData?.error || "Failed to change password");
       } catch (e) {
-        console.error("Failed to parse error response");
+        clientLogger("error", "Failed to parse error response", { error: e });
       }
 
       throw new Error(

@@ -12,17 +12,21 @@ function required(name: string, value: string | undefined) {
 export function getMailer(): Transporter {
   if (cachedTransporter) return cachedTransporter;
 
-  const host = required('MAILTRAP_HOST', process.env.MAILTRAP_HOST);
-  const portStr = required('MAILTRAP_PORT', process.env.MAILTRAP_PORT);
-  const user = required('MAILTRAP_USER', process.env.MAILTRAP_USER);
-  const pass = required('MAILTRAP_PASS', process.env.MAILTRAP_PASS);
+  const host = required('MAIL_HOST', process.env.MAIL_HOST);
+  const portStr = required('MAIL_PORT', process.env.MAIL_PORT);
+  const user = required('MAIL_USER', process.env.MAIL_USER);
+  const pass = required('MAIL_PASS', process.env.MAIL_PASS);
 
   const port = Number(portStr);
 
   const transporter = nodemailer.createTransport({
     host,
+    secure: false,
     port,
     auth: { user, pass },
+    tls: {
+      rejectUnauthorized: false, // for mkcert self-signed cert
+    },
   });
 
   // Optionally verify on startup in dev to catch config errors early

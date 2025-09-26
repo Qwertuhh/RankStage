@@ -125,7 +125,7 @@ yarn build
 
 ## Project Structure
 
-```
+```plain
 rankstage/
 ├── src/                    # Source files
 │   ├── components/         # React components

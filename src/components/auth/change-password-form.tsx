@@ -378,12 +378,15 @@ function ChangePasswordForm({
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
                 onKeyDown={(e) => {
-                  // Handle Enter key press to move to next step
-                  if (e.key === "Enter" && currentStep < formSteps.length - 1) {
+                  // Prevent form submission on Enter key
+                  if (e.key === "Enter") {
                     e.preventDefault();
-                    // Don't auto-proceed from OTP step, let the verify button handle it
-                    if (formSteps[currentStep].id === "otp") return;
-                    handleNext();
+                    // Only handle Enter for non-password fields and non-OTP steps
+                    if (formSteps[currentStep].id !== "otp" && formSteps[currentStep].id !== "password") {
+                      if (currentStep < formSteps.length - 1) {
+                        handleNext();
+                      }
+                    }
                   }
                 }}
                 className="space-y-6"
