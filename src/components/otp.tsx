@@ -47,10 +47,10 @@ export function InputOTPForm({ email, name, controller }: InputOTPFormProps) {
     defaultValues: {
       pin: "",
     },
-    mode: 'onTouched', // Only validate on blur or when submitting
-    reValidateMode: 'onChange', // Re-validate on change after first error
+    mode: "onTouched", // Only validate on blur or when submitting
+    reValidateMode: "onChange", // Re-validate on change after first error
   });
-  
+
   // Track if the user has interacted with the input
   const [hasInteracted, setHasInteracted] = React.useState(false);
 
@@ -65,43 +65,49 @@ export function InputOTPForm({ email, name, controller }: InputOTPFormProps) {
     if (controller) {
       const updateRemaining = () => {
         if (controller.expiresAt) {
-          const diff = Math.max(0, Math.floor((controller.expiresAt - Date.now()) / 1000));
+          const diff = Math.max(
+            0,
+            Math.floor((controller.expiresAt - Date.now()) / 1000)
+          );
           setRemaining(diff);
         }
       };
-      
+
       // Initial update
       updateRemaining();
-      
+
       // Update every second if we have an expiration time
       let intervalId: NodeJS.Timeout;
       if (controller.expiresAt) {
         intervalId = setInterval(updateRemaining, 1000);
       }
-      
+
       return () => clearInterval(intervalId);
     }
-    
+
     // Local countdown management
     if (!expiresAt) return;
-    
+
     const tick = () => {
       const diff = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
       setRemaining(diff);
     };
-    
+
     // Initial tick
     tick();
-    
+
     // Set up interval
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, [expiresAt, controller]);
-  
+
   // Update remaining time when controller's expiresAt changes
   React.useEffect(() => {
     if (controller?.expiresAt) {
-      const diff = Math.max(0, Math.floor((controller.expiresAt - Date.now()) / 1000));
+      const diff = Math.max(
+        0,
+        Math.floor((controller.expiresAt - Date.now()) / 1000)
+      );
       setRemaining(diff);
     }
   }, [controller?.expiresAt]);
@@ -125,13 +131,17 @@ export function InputOTPForm({ email, name, controller }: InputOTPFormProps) {
       setExpiresAt(data.expiresAt as number);
       toast.success("Verification code sent to your email.");
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : typeof err === 'string' ? err : 'Failed to send OTP';
+      const message =
+        err instanceof Error
+          ? err.message
+          : typeof err === "string"
+          ? err
+          : "Failed to send OTP";
       toast.error(message);
     } finally {
       setResending(false);
     }
   }
-
 
   return (
     <Form {...form}>

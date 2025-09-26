@@ -17,7 +17,10 @@ function OtpVerificationComponent<
 }: {
   form: UseFormReturn<T>;
   onNext?: () => void;
-  controllerRef?: React.RefObject<OtpController | null>;
+  controllerRef?: {
+    current: OtpController | null;
+    onControllerReady: (controller: OtpController) => void;
+  };
 }) {
   const email = form.watch("email" as Path<T>);
   const name = `${form.watch("firstName" as Path<T>)} ${form.watch(
@@ -25,57 +28,92 @@ function OtpVerificationComponent<
   )}`.trim();
   const controller = useOtpVerification(email as string, name);
 
-  // Expose controller to parent via ref
+  // Update the parent's controller ref when the controller is ready
   React.useEffect(() => {
-    if (controllerRef) controllerRef.current = controller;
-    // keep updated reference
-  }, [controllerRef, controller]);
+    if (controllerRef) {
+      controllerRef.onControllerReady(controller);
+    }
+  }, [controller, controllerRef]);
 
-  // Keep form's otp and otpVerified fields in sync with controller
+  // Keep form's otp field in sync with controller's pin
   React.useEffect(() => {
-    // Update otpVerified based on controller.verified
-    form.setValue(
-      "otpVerified" as Path<T>,
-      controller.verified as PathValue<T, Path<T>>,
-      {
-        shouldDirty: true,
-        shouldValidate: true,
+    // Only update the form's otp value when the pin changes
+    if (controller.pin.length > 0) {
+      const otpValue = parseInt(controller.pin, 10);
+      if (!isNaN(otpValue)) {
+        form.setValue("otp" as Path<T>, otpValue as PathValue<T, Path<T>>, {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
       }
-    );
+    }
+  }, [controller.pin, form]);
 
-    // Update otp value from controller.pin if it's a valid number
-    const otpValue = parseInt(controller.pin, 10);
-    if (!isNaN(otpValue) && controller.pin.length === 6) {
-      form.setValue("otp" as Path<T>, otpValue as PathValue<T, Path<T>>, {
+  // Sync the verified state from controller to form
+  React.useEffect(() => {
+    if (controller.verified) {
+      form.setValue("otpVerified" as Path<T>, true as PathValue<T, Path<T>>, {
         shouldDirty: true,
         shouldValidate: true,
       });
     }
-  }, [controller.verified, controller.pin, form]);
+  }, [controller.verified, form]);
 
+  // Get the current verification status from the form
+  const isVerified = form.watch("otpVerified" as Path<T>);
+  console.log(isVerified);
+  console.log(controller);
   return (
     <FormField
       control={form.control}
       name={"otp" as Path<T>}
       render={() => (
         <FormItem className="w-full">
-          <InputOTPForm
-            email={email as string}
-            name={name}
-            controller={controller}
-            onVerifiedChange={(valid) => {
-              // Update otpVerified when verification status changes
-              form.setValue(
-                "otpVerified" as Path<T>,
-                valid as PathValue<T, Path<T>>,
-                {
-                  shouldDirty: true,
-                  shouldValidate: true,
-                }
-              );
-            }}
-            onSuccessNext={onNext}
-          />
+          {isVerified && (
+            <div className="flex flex-col items-center justify-center p-4 space-y-2 text-center">
+              <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                <svg
+                  className="w-6 h-6 text-green-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900">
+                Email Verified
+              </h3>
+              <p className="text-sm text-gray-500">
+                Your email has been successfully verified.
+              </p>
+            </div>
+          )}
+          {!isVerified && (
+            <InputOTPForm
+              email={email as string}
+              name={name}
+              controller={controller}
+              onVerifiedChange={(valid) => {
+                // Update otpVerified when verification status changes
+                form.setValue(
+                  "otpVerified" as Path<T>,
+                  valid as PathValue<T, Path<T>>,
+                  {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  }
+                );
+              }}
+              onSuccessNext={onNext}
+            />
+          )}
           <FormMessage />
         </FormItem>
       )}

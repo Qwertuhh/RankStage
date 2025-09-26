@@ -34,7 +34,6 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MoveRight } from "@/components/animate-ui/icons/move-right";
 import { AnimateIcon } from "@/components/animate-ui/icons/icon";
-import { useSearchParams } from "next/navigation";
 import { ChangePasswordType } from "@/types/api/auth/change-password";
 import OldPasswordComponent from "./form-components/oldPassword";
 import clientLogger from "@/lib/sdk/client-logger";
@@ -49,9 +48,9 @@ function ChangePasswordForm({
 }: React.ComponentProps<"div"> & {
   requestType: ChangePasswordType;
 }) {
-
   clientLogger("info", "ChangePasswordForm", { requestType });
   const otpControllerRef = useRef<OtpController | null>(null);
+  const [otpControllerReady, setOtpControllerReady] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -64,7 +63,6 @@ function ChangePasswordForm({
       otpVerified: false,
     },
   });
-
   const formSteps = useMemo<FormStep[]>(() => {
     if (requestType === ChangePasswordType.ResetPassword) {
       return [
@@ -126,7 +124,12 @@ function ChangePasswordForm({
         component: (
           <OtpVerificationComponent
             form={form}
-            controllerRef={otpControllerRef}
+            controllerRef={{
+              current: otpControllerRef.current,
+              onControllerReady: (controller) => {
+                otpControllerRef.current = controller;
+              },
+            }}
           />
         ),
         fields: ["otp"],
@@ -382,7 +385,10 @@ function ChangePasswordForm({
                   if (e.key === "Enter") {
                     e.preventDefault();
                     // Only handle Enter for non-password fields and non-OTP steps
-                    if (formSteps[currentStep].id !== "otp" && formSteps[currentStep].id !== "password") {
+                    if (
+                      formSteps[currentStep].id !== "otp" &&
+                      formSteps[currentStep].id !== "password"
+                    ) {
                       if (currentStep < formSteps.length - 1) {
                         handleNext();
                       }
@@ -398,7 +404,13 @@ function ChangePasswordForm({
                         <OtpVerificationComponent
                           form={form}
                           onNext={handleNext}
-                          controllerRef={otpControllerRef}
+                          controllerRef={{
+                            current: otpControllerRef.current,
+                            onControllerReady: (controller) => {
+                              otpControllerRef.current = controller;
+                              setOtpControllerReady(!!controller);
+                            },
+                          }}
                         />
                       ) : (
                         step.component
@@ -421,13 +433,58 @@ function ChangePasswordForm({
 
                   {currentStep < formSteps.length - 1 &&
                     (formSteps[currentStep].id === "otp" ? (
-                      !form.watch("otp") ? (
+                      !form.watch("otpVerified") ? (
                         <Button
                           type="button"
-                          onClick={() => otpControllerRef.current?.verify()}
-                          disabled={form.formState.isSubmitting}
+                          onClick={async () => {
+                            if (!otpControllerRef?.current) {
+                              console.error("OTP Controller not available");
+                              toast.error(
+                                "Verification service not ready. Please try again."
+                              );
+                              return;
+                            }
+
+                            clientLogger("info", "Verifying OTP", {
+                              email: form.watch("email"),
+                            });
+
+                            try {
+                              const controller = otpControllerRef.current;
+                              const isValid = await controller.verify();
+
+                              if (isValid) {
+                                form.setValue("otpVerified", true, {
+                                  shouldDirty: true,
+                                  shouldValidate: true,
+                                });
+                                // Force form re-render to update the UI
+                                form.trigger("otpVerified");
+                              }
+                            } catch (error) {
+                              toast.error(
+                                "Failed to verify OTP. Please try again."
+                              );
+                              clientLogger("error", "OTP verification failed", {
+                                email: form.watch("email"),
+                                error:
+                                  error instanceof Error
+                                    ? error.message
+                                    : String(error),
+                              });
+                              console.error("OTP verification failed:", error);
+                            }
+                          }}
+                          disabled={
+                            form.formState.isSubmitting ||
+                            !form.watch("otp") ||
+                            !otpControllerReady ||
+                            otpControllerRef.current?.loading
+                          }
                         >
-                          Verify
+                          {otpControllerRef.current?.loading
+                            ? "Verifying..."
+                            : "Verify"}
                         </Button>
                       ) : (
                         <Button
