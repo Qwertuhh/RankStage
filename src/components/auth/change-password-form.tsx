@@ -38,6 +38,7 @@ import { ChangePasswordType } from "@/types/api/auth/change-password";
 import OldPasswordComponent from "./form-components/oldPassword";
 import clientLogger from "@/lib/sdk/client-logger";
 import type { FormStep } from "@/types/auth/change-password-form-schema";
+import { MailRequestType } from "@/types/api/auth/mail";
 
 type FormData = z.infer<typeof formSchema>;
 
@@ -122,6 +123,7 @@ function ChangePasswordForm({
           "Enter the 6-digit code we sent to your registered email to verify your account.",
         component: (
           <OtpVerificationComponent
+            requestType={MailRequestType.ChangePassword}
             form={form}
             controllerRef={otpControllerRef}
           />

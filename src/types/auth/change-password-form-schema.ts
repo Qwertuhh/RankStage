@@ -25,9 +25,12 @@ const formSchema = z
     otpVerified: z.boolean().refine((val) => val === true, {
       message: "Please verify your OTP to continue.",
     }),
-    oldPassword: z.string().min(6, {
-      message: "Password must be at least 6 characters.",
-    }).optional(),
+    oldPassword: z
+      .string()
+      .min(6, {
+        message: "Password must be at least 6 characters.",
+      })
+      .optional(),
     password: z.string().min(6, {
       message: "Password must be at least 6 characters.",
     }),

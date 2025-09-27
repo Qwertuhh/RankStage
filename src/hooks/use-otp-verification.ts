@@ -3,11 +3,13 @@
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import clientLogger from "@/lib/sdk/client-logger";
+import { MailRequestType } from "@/types/api/auth/mail";
 
 export type OtpController = {
   // identity
   email: string;
   name: string;
+  requestType: MailRequestType;
   // otp input value
   pin: string;
   setPin: (v: string) => void;
@@ -25,7 +27,7 @@ export type OtpController = {
   clearOtpData: () => void;
 };
 
-export function useOtpVerification(email: string, name: string): OtpController {
+export function useOtpVerification(email: string, name: string, requestType: MailRequestType): OtpController {
   const [pin, setPin] = useState("");
   const [token, setToken] = useState<string | null>(null);
   const [expiresAt, setExpiresAt] = useState<number | null>(null);
@@ -54,7 +56,7 @@ export function useOtpVerification(email: string, name: string): OtpController {
       const res = await fetch("/api/auth/verify-email/generator", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email, name }),
+        body: JSON.stringify({ email, name, requestType }),
       });
 
       const data = await res.json();
@@ -80,7 +82,7 @@ export function useOtpVerification(email: string, name: string): OtpController {
     } finally {
       setResending(false);
     }
-  }, [email, name]);
+  }, [email, name, requestType]);
 
   const verify = useCallback(
     async (otpToVerify: string = pin): Promise<boolean> => {
@@ -164,6 +166,7 @@ export function useOtpVerification(email: string, name: string): OtpController {
 
   // Memoize the controller to prevent unnecessary re-renders
   return useMemo(() => ({
+    requestType,
     email,
     name,
     pin,
@@ -180,6 +183,7 @@ export function useOtpVerification(email: string, name: string): OtpController {
   }), [
     email,
     name,
+    requestType,
     pin,
     token,
     expiresAt,

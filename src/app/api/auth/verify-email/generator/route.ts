@@ -2,23 +2,84 @@ import { NextRequest, NextResponse } from "next/server";
 import { createHmac, randomInt } from "crypto";
 import jwt from "jsonwebtoken";
 import logger from "@/lib/logger";
-
-export const runtime = "nodejs";
+import { MailRequestType } from "@/types/api/auth/mail";
+import { SendOtpRequest } from "@/types/api/auth/mail";
+import { User } from "@/models";
+import connectDB from "@/lib/db";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
-    const email: string | undefined = body?.email;
-    const name: string | undefined = body?.name;
+    const { email, requestType } = body;
+    let name: string | undefined = body.name;
 
-    if (!email) {
+    if (!email || !requestType) {
       return NextResponse.json(
         {
           success: false,
-          error: "Email is required in request body { email }",
+          error:
+            "Email, and requestType are required in request body { email, requestType }",
         },
         { status: 400 }
       );
+    }
+
+    // If request type is forgot password, user must be signup
+    if (requestType === MailRequestType.ChangePassword) {
+      try {
+        await connectDB();
+        const user = await User.findOne({ email });
+        if (!user) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: "User not found for email " + email,
+            },
+            { status: 404 }
+          );
+        }
+        if (!user.firstName || !user.lastName) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: "User not found for email " + email,
+            },
+            { status: 404 }
+          );
+        }
+        if (name) {
+          logger.info(
+            `[auth/verify-email/generator] Name already provided ${email}`
+          );
+        }
+        name = user.firstName + " " + user.lastName;
+        logger.info(
+          `[auth/verify-email/generator] User found for email ${email}`
+        );
+      } catch (err: unknown) {
+        logger.error(
+          `[auth/verify-email/generator] Failed to get user for email ${email}: ${
+            err instanceof Error ? err.message : String(err)
+          }`
+        );
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Failed to get user for email " + email,
+          },
+          { status: 500 }
+        );
+      }
+    } else if (requestType === MailRequestType.SignUp) {
+      if (!name) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Name is required in request body { name }",
+          },
+          { status: 400 }
+        );
+      }
     }
 
     const OTP_SECRET = process.env.OTP_SECRET;
@@ -55,7 +116,7 @@ export async function POST(req: NextRequest) {
     const enqueueRes = await fetch(`${origin}/api/mail/send-otp`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email, name, otp }),
+      body: JSON.stringify({ email, name, otp, requestType } as SendOtpRequest),
       // Do not cache
       cache: "no-store",
     });
@@ -74,7 +135,12 @@ export async function POST(req: NextRequest) {
     logger.info(`[auth/verify-email/generator] OTP enqueued to ${email}`);
     return NextResponse.json({ success: true, token, expiresAt });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : typeof err === "string" ? err : "Internal Server Error";
+    const message =
+      err instanceof Error
+        ? err.message
+        : typeof err === "string"
+        ? err
+        : "Internal Server Error";
     logger.error(`[auth/verify-email/generator] Error: ${message}`);
     return NextResponse.json(
       { success: false, error: message },

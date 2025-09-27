@@ -21,6 +21,7 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { SlidingNumber } from "@/components/animate-ui/primitives/texts/sliding-number";
+import { MailRequestType } from "@/types/api/auth/mail";
 
 const FormSchema = z.object({
   pin: z.string().min(6, {
@@ -31,6 +32,7 @@ const FormSchema = z.object({
 type InputOTPFormProps = {
   email: string;
   name: string;
+  requestType: MailRequestType;
   // If provided, we will set ref.current to true/false after verification
   statusRef?: React.MutableRefObject<boolean | null>;
   // Optional callback when verification result is obtained
@@ -41,7 +43,7 @@ type InputOTPFormProps = {
   controller?: import("@/hooks/use-otp-verification").OtpController;
 };
 
-export function InputOTPForm({ email, name, controller }: InputOTPFormProps) {
+export function InputOTPForm({ email, name, requestType, controller }: InputOTPFormProps) {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -111,6 +113,8 @@ export function InputOTPForm({ email, name, controller }: InputOTPFormProps) {
       setRemaining(diff);
     }
   }, [controller?.expiresAt]);
+
+  //* Request OTP
   async function requestOtp() {
     if (controller) {
       await controller.requestOtp();
@@ -121,7 +125,7 @@ export function InputOTPForm({ email, name, controller }: InputOTPFormProps) {
       const res = await fetch("/api/auth/verify-email/generator", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email, name }),
+        body: JSON.stringify({ email, name, requestType }),
       });
       const data = await res.json();
       if (!res.ok || !data?.success) {

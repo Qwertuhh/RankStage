@@ -9,15 +9,18 @@ import {
 import { Path, PathValue } from "react-hook-form";
 import { AnimateIcon } from "@/components/animate-ui/icons/icon";
 import { BadgeCheck } from "@/components/animate-ui/icons/badge-check";
+import { MailRequestType } from "@/types/api/auth/mail";
 
 function OtpVerificationComponent<
   T extends { email: string; otpVerified: boolean; otp: number }
 >({
   form,
+  requestType,
   onNext,
   controllerRef,
 }: {
   form: UseFormReturn<T>;
+  requestType: MailRequestType;
   onNext?: () => void;
   controllerRef?: {
     current: OtpController | null;
@@ -27,7 +30,7 @@ function OtpVerificationComponent<
   const name = `${form.watch("firstName" as Path<T>)} ${form.watch(
     "lastName" as Path<T>
   )}`.trim();
-  const controller = useOtpVerification(email as string, name);
+  const controller = useOtpVerification(email as string, name, requestType=MailRequestType.ChangePassword);
 
   // Update the parent's controller ref
   React.useEffect(() => {
@@ -84,6 +87,7 @@ function OtpVerificationComponent<
             <InputOTPForm
               email={email as string}
               name={name}
+              requestType={requestType}
               controller={controller}
               onVerifiedChange={(valid) => {
                 // Update otpVerified when verification status changes
