@@ -4,25 +4,62 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import clientLogger from "@/lib/sdk/client-logger";
-import { ChangePasswordRequest, ChangePasswordType } from "@/types/api/auth/change-password";
+import {
+  ChangePasswordRequest,
+  ChangePasswordType,
+} from "@/types/api/auth/change-password";
+import type { OtpController } from "@/hooks/use-otp-verification";
 
 type FormData = z.infer<typeof formSchema>;
 
 async function onSubmit(
   values: FormData,
-  otpToken: string,
+  otpController: OtpController | null,
   requestType: ChangePasswordType
 ) {
-  const { email, oldPassword, otp, password } = values;
-
+  const { email, oldPassword, password } = values;
   try {
+    // Log the current OTP controller state for debugging
+    clientLogger("debug", "OTP Controller State", {
+      hasController: !!otpController,
+      hasToken: otpController?.token ? 'yes' : 'no',
+      hasPin: otpController?.pin ? 'yes' : 'no',
+      verified: otpController?.verified ? 'yes' : 'no',
+      email
+    });
+    console.log("otpController: ",otpController)
+    // Check if OTP controller exists and is properly verified
+    if (!otpController || !otpController.verified) {
+      const errorMsg = "Please complete the email verification process first.";
+      clientLogger("warn", errorMsg, {
+        requestType,
+        email,
+        hasController: !!otpController,
+        isVerified: otpController?.verified
+      });
+      toast.error(errorMsg);
+      throw new Error(errorMsg);
+    }
+
+    // Ensure we have the required OTP data
+    if (!otpController.token || !otpController.pin) {
+      const errorMsg = "Verification data is incomplete. Please verify your email again.";
+      clientLogger("error", errorMsg, {
+        requestType,
+        email,
+        hasToken: !!otpController?.token,
+        hasPin: !!otpController?.pin,
+      });
+      toast.error(errorMsg);
+      throw new Error(errorMsg);
+    }
     // 1. Prepare the request body with proper types
     const requestBody: ChangePasswordRequest = {
       requestType,
       email,
-      otpToken,
+      otpToken: otpController.token,
       newPassword: password,
-      otp: otp?.toString(),
+      otp: otpController.pin,
       // Only include oldPassword for reset password flow
       ...(requestType === ChangePasswordType.ResetPassword && { oldPassword }),
     };
@@ -76,22 +113,23 @@ async function onSubmit(
 
 function SubmitForm({
   form,
-  otpToken,
+  otpController,
   requestType,
 }: {
   form: UseFormReturn<FormData>;
-  otpToken: string;
+  otpController: OtpController | null;
   requestType: ChangePasswordType;
 }) {
+  console.log("@@",form.getValues(), otpController, requestType);
   return (
     <div className="flex justify-center items-center gap-2 w-full px-4">
       <Button
         type="submit"
         className="w-full cursor-pointer"
-        onClick={() => onSubmit(form.watch(), otpToken, requestType)}
+        onClick={() => onSubmit(form.watch(), otpController, requestType)}
         disabled={form.formState.isSubmitting}
       >
-        {form.formState.isSubmitting ? "Submitting..." : "Create Account"}
+        {form.formState.isSubmitting ? "Submitting..." : "Change Password"}
       </Button>
     </div>
   );

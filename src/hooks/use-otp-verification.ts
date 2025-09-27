@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import clientLogger from "@/lib/sdk/client-logger";
 
@@ -22,6 +22,7 @@ export type OtpController = {
   // actions
   requestOtp: () => Promise<void>;
   verify: () => Promise<boolean>;
+  clearOtpData: () => void;
 };
 
 export function useOtpVerification(email: string, name: string): OtpController {
@@ -33,37 +34,38 @@ export function useOtpVerification(email: string, name: string): OtpController {
   const [resending, setResending] = useState(false);
   const [verified, setVerified] = useState(false);
 
-  useEffect(() => {
-    if (!expiresAt) return;
-    const tick = () => {
-      const diff = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
-      setRemaining(diff);
-    };
-    tick();
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
-  }, [expiresAt]);
+  // Clear OTP data (token, pin, and expiration)
+  const clearOtpData = useCallback(() => {
+    setToken(null);
+    setPin("");
+    setExpiresAt(null);
+    setVerified(false);
+    setRemaining(0);
+    setLoading(false);
+    setResending(false);
+  }, []);
+
 
   const requestOtp = useCallback(async () => {
     try {
-      clientLogger('info', 'Initiating OTP request', { email });
+      clientLogger("info", "Initiating OTP request", { email });
       setResending(true);
-      
+
       const res = await fetch("/api/auth/verify-email/generator", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ email, name }),
       });
-      
+
       const data = await res.json();
-      
+
       if (!res.ok || !data?.success) {
         const errorMsg = data?.error || "Failed to request OTP";
-        clientLogger('error', 'OTP request failed', { email, error: errorMsg });
+        clientLogger("error", "OTP request failed", { email, error: errorMsg });
         throw new Error(errorMsg);
       }
-      
-      clientLogger('info', 'OTP request successful', { email });
+
+      clientLogger("info", "OTP request successful", { email });
       setToken(data.token as string);
       setExpiresAt(data.expiresAt as number);
       toast.success("Verification code sent to your email.");
@@ -80,104 +82,114 @@ export function useOtpVerification(email: string, name: string): OtpController {
     }
   }, [email, name]);
 
-  const verify = useCallback(async (otpToVerify = pin) => {
-    if (!token) {
-      clientLogger('warn', 'Verification attempted without token', { email });
-      toast.warning("Please request a code first.");
-      return false;
-    }
-    
-    if (otpToVerify.length < 6) {
-      clientLogger('warn', 'Incomplete OTP entered', { email, pinLength: otpToVerify.length });
-      toast.warning("Please enter the 6-digit code.");
-      return false;
-    }
-    
-    setLoading(true);
-    clientLogger('info', 'Starting OTP verification', { email });
-    
-    try {
-      const res = await fetch("/api/auth/verify-email/verifier", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email, otp: otpToVerify, token }),
-      });
-      
-      if (!res.ok) {
-        throw new Error('Verification request failed');
+  const verify = useCallback(
+    async (otpToVerify: string = pin): Promise<boolean> => {
+      // Clear any previous errors
+      setLoading(true);
+
+      if (!token) {
+        clientLogger("warn", "Verification attempted without token", { email });
+        toast.warning("Please request a new verification code.");
+        setLoading(false);
+        setVerified(false);
+        return false;
       }
-      
-      const json = await res.json();
-      const valid = Boolean(json?.valid);
 
-      // Update the verified state
-      setVerified(valid);
-
-      if (valid) {
-        clientLogger('info', 'OTP verification successful', { email });
-        toast.success("Email verified!");
-        // Update the pin to the verified OTP
-        setPin(otpToVerify);
-      } else {
-        clientLogger('warn', 'OTP verification failed', { 
-          email, 
-          reason: json?.message || 'Invalid or expired code' 
+      if (otpToVerify.length < 6) {
+        clientLogger("warn", "Incomplete OTP entered", {
+          email,
+          pinLength: otpToVerify.length,
         });
-        // Clear the pin and token on failed verification
-        setPin("");
-        setToken(null);
-        toast.error("Invalid or expired code. Try again or resend.");
+        toast.warning("Please enter the complete 6-digit code.");
+        setLoading(false);
+        return false;
       }
-      return valid;
-    } catch (err: unknown) {
-      // Log and handle errors
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error during verification';
-      clientLogger('error', 'OTP verification error', { 
-        email, 
-        error: errorMessage,
-        stack: err instanceof Error ? err.stack : undefined
-      });
-      
-      // Clear state on error
-      setVerified(false);
-      setPin("");
-      setToken(null);
 
-      const message = errorMessage;
-      toast.error(message);
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  }, [email, pin, token]);
+      clientLogger("info", "Starting OTP verification", { email });
 
-  return useMemo(
-    () => ({
-      email,
-      name,
-      pin,
-      setPin,
-      token,
-      expiresAt,
-      remaining,
-      loading,
-      resending,
-      verified,
-      requestOtp,
-      verify,
-    }),
-    [
-      email,
-      name,
-      pin,
-      token,
-      expiresAt,
-      remaining,
-      loading,
-      resending,
-      verified,
-      requestOtp,
-      verify,
-    ]
+      try {
+        const res = await fetch("/api/auth/verify-email/verifier", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ email, otp: otpToVerify, token }),
+        });
+
+        const json = await res.json();
+        const isValid = Boolean(json?.valid);
+
+        if (!res.ok || !isValid) {
+          const errorMessage = json?.message || 'Invalid or expired code';
+          clientLogger("warn", "OTP verification failed", {
+            email,
+            reason: errorMessage,
+            status: res.status,
+          });
+
+          // Only clear the token if it's explicitly an expired token error
+          if (errorMessage.toLowerCase().includes("expired")) {
+            clearOtpData();
+            toast.error("This code has expired. Please request a new one.");
+          } else {
+            toast.error("Incorrect code. Please try again or request a new one.");
+          }
+          return false;
+        }
+
+        // Update the verified state and clear sensitive data on success
+        setVerified(true);
+        setPin(otpToVerify);
+        
+        clientLogger("info", "OTP verification successful", { email });
+        toast.success("Email verified!");
+        
+        return true;
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : "Unknown error during verification";
+        clientLogger("error", "OTP verification error", {
+          email,
+          error: errorMessage,
+          stack: err instanceof Error ? err.stack : undefined,
+        });
+
+        // Reset verification state on error
+        setVerified(false);
+        toast.error(errorMessage);
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [email, pin, token, setVerified, setLoading, setPin, clearOtpData]
   );
+
+  // Memoize the controller to prevent unnecessary re-renders
+  return useMemo(() => ({
+    email,
+    name,
+    pin,
+    setPin,
+    token,
+    expiresAt,
+    remaining,
+    loading,
+    resending,
+    verified,
+    requestOtp,
+    verify,
+    clearOtpData,
+  }), [
+    email,
+    name,
+    pin,
+    token,
+    expiresAt,
+    remaining,
+    loading,
+    resending,
+    verified,
+    requestOtp,
+    verify,
+    setPin,
+    clearOtpData,
+  ]);
 }

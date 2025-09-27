@@ -50,7 +50,6 @@ function ChangePasswordForm({
 }) {
   clientLogger("info", "ChangePasswordForm", { requestType });
   const otpControllerRef = useRef<OtpController | null>(null);
-  const [otpControllerReady, setOtpControllerReady] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -97,7 +96,7 @@ function ChangePasswordForm({
           component: (
             <ChangePasswordSubmitForm
               form={form}
-              otpToken={otpControllerRef.current?.token || ""}
+              otpController={otpControllerRef.current}
               requestType={requestType}
             />
           ),
@@ -124,12 +123,7 @@ function ChangePasswordForm({
         component: (
           <OtpVerificationComponent
             form={form}
-            controllerRef={{
-              current: otpControllerRef.current,
-              onControllerReady: (controller) => {
-                otpControllerRef.current = controller;
-              },
-            }}
+            controllerRef={otpControllerRef}
           />
         ),
         fields: ["otp"],
@@ -150,8 +144,8 @@ function ChangePasswordForm({
         component: (
           <ChangePasswordSubmitForm
             form={form}
-            otpToken={otpControllerRef.current?.token || ""}
             requestType={requestType}
+            otpController={otpControllerRef.current}
           />
         ),
         fields: [],
@@ -231,27 +225,21 @@ function ChangePasswordForm({
       verifiedPasswordRef.current = form.getValues("password");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.watch("otp")]);
+  }, [form.watch("otpVerified")]);
 
-  //* If email or password changes after verification, require re-verification
+  //* If email changes after verification, require re-verification
   const watchedEmail = form.watch("email");
-  const watchedPassword = form.watch("password");
   useEffect(() => {
     const otp = form.getValues("otp");
     if (!otp) return;
     const emailChanged =
       verifiedEmailRef.current !== null &&
       watchedEmail !== verifiedEmailRef.current;
-    const passwordChanged =
-      verifiedPasswordRef.current !== null &&
-      watchedPassword !== verifiedPasswordRef.current;
-    if (emailChanged || passwordChanged) {
-      form.setValue("otpVerified", false, {
-        shouldDirty: true,
-        shouldValidate: true,
-      });
+    if (emailChanged) {
+      form.setValue("otpVerified", false);
+      otpControllerRef.current?.clearOtpData();
     }
-  }, [watchedEmail, watchedPassword, form]);
+  }, [watchedEmail, form]);
 
   // When OTP becomes invalid or changes, restrict jumping to at most the OTP step
   useEffect(() => {
@@ -262,7 +250,7 @@ function ChangePasswordForm({
       setCurrentStep((prev) => Math.min(prev, otpIdx === -1 ? prev : otpIdx));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [watchedEmail, watchedPassword]);
+  }, [watchedEmail]);
 
   // Validate current step when trying to proceed
   const validateCurrentStep = async () => {
@@ -293,7 +281,7 @@ function ChangePasswordForm({
     toast.loading("Creating your account...");
     // Rest of your submission logic here
   };
-
+  console.log(form.getValues());
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Tabs
@@ -400,21 +388,7 @@ function ChangePasswordForm({
                 <TabsPanels>
                   {formSteps.map((step) => (
                     <TabsPanel key={step.id} value={step.id}>
-                      {step.id === "otp" ? (
-                        <OtpVerificationComponent
-                          form={form}
-                          onNext={handleNext}
-                          controllerRef={{
-                            current: otpControllerRef.current,
-                            onControllerReady: (controller) => {
-                              otpControllerRef.current = controller;
-                              setOtpControllerReady(!!controller);
-                            },
-                          }}
-                        />
-                      ) : (
-                        step.component
-                      )}
+                      {step.component}
                     </TabsPanel>
                   ))}
                 </TabsPanels>
@@ -452,8 +426,9 @@ function ChangePasswordForm({
                             try {
                               const controller = otpControllerRef.current;
                               const isValid = await controller.verify();
-
+                              controller.verified = true;
                               if (isValid) {
+                                toast.success("OTP verified successfully");
                                 form.setValue("otpVerified", true, {
                                   shouldDirty: true,
                                   shouldValidate: true,
@@ -478,7 +453,6 @@ function ChangePasswordForm({
                           disabled={
                             form.formState.isSubmitting ||
                             !form.watch("otp") ||
-                            !otpControllerReady ||
                             otpControllerRef.current?.loading
                           }
                         >

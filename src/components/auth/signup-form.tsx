@@ -130,7 +130,12 @@ function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
         title: "OTP",
         description:
           "Enter the 6-digit code we sent to your email to verify your account.",
-        component: <OtpVerificationComponent form={form} />,
+        component: (
+          <OtpVerificationComponent
+            form={form}
+            controllerRef={otpControllerRef}
+          />
+        ),
         fields: ["otp"],
       },
       {

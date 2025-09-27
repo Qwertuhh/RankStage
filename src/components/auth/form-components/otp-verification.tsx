@@ -19,7 +19,6 @@ function OtpVerificationComponent<
   onNext?: () => void;
   controllerRef?: {
     current: OtpController | null;
-    onControllerReady: (controller: OtpController) => void;
   };
 }) {
   const email = form.watch("email" as Path<T>);
@@ -28,10 +27,10 @@ function OtpVerificationComponent<
   )}`.trim();
   const controller = useOtpVerification(email as string, name);
 
-  // Update the parent's controller ref when the controller is ready
+  // Update the parent's controller ref
   React.useEffect(() => {
     if (controllerRef) {
-      controllerRef.onControllerReady(controller);
+      controllerRef.current = controller;
     }
   }, [controller, controllerRef]);
 
