@@ -7,6 +7,8 @@ import {
   type OtpController,
 } from "@/hooks/use-otp-verification";
 import { Path, PathValue } from "react-hook-form";
+import { AnimateIcon } from "@/components/animate-ui/icons/icon";
+import { BadgeCheck } from "@/components/animate-ui/icons/badge-check";
 
 function OtpVerificationComponent<
   T extends { email: string; otpVerified: boolean; otp: number }
@@ -70,26 +72,10 @@ function OtpVerificationComponent<
         <FormItem className="w-full">
           {isVerified && (
             <div className="flex flex-col items-center justify-center p-4 space-y-2 text-center">
-              <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                <svg
-                  className="w-6 h-6 text-green-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-lg font-medium text-gray-900">
-                Email Verified
-              </h3>
-              <p className="text-sm text-gray-500">
+              <AnimateIcon animateOnHover>
+                <BadgeCheck />
+              </AnimateIcon>
+              <p className="text-sm text-center">
                 Your email has been successfully verified.
               </p>
             </div>
